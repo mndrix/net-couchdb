@@ -1,0 +1,10 @@
+Changes
+MANIFEST
+Makefile.PL
+README
+lib/Net/CouchDB.pm
+lib/Net/CouchDB/DB.pm
+t/00-load.t
+t/01-server.t
+t/pod-coverage.t
+t/pod.t
