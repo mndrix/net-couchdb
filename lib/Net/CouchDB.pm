@@ -13,7 +13,7 @@ sub new {
     my ($class, $uri) = @_;
     my $ua   = LWP::UserAgent->new;
     my $res = $ua->get($uri);
-    die "Unable to retrieve $uri\n" if not $res->is_success;
+    die "Unable to connect to the CouchDB at $uri\n" if not $res->is_success;
     my $json = JSON::Any->new;
     my $about = $json->decode( $res->content );
     return bless {
