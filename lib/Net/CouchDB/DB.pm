@@ -30,7 +30,9 @@ sub new {
         }
     }
 
-    # TODO verify that this database exists
+    # TODO $self->call('GET', '') to verify that the DB exists
+    # TODO the result of that query can be used for a new ->about
+    # TODO which returns details about the database
     return $self;
 }
 
