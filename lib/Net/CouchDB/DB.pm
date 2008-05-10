@@ -24,9 +24,9 @@ sub new {
         }
         else {
             my $uri = $self->couch->uri;
-            die "The CouchDB at $uri responded with an unknown code "
-              . "$code when trying to create a new database named "
-              . "'$name'.\n";
+            my $details = $self->couch->json->decode( $res->content );
+            my $error = ref $details ? $details->{reason} : 'unknown';
+            die "CouchDB at $uri encountered the following error: $error\n";
         }
     }
 
