@@ -101,33 +101,61 @@ This documentation refers to Net::CouchDB version 0.01
     # so make it as educational and exemplary as possible.
  
  
-=head1 DIAGNOSTICS
+=head1 DESCRIPTION
 
-A list of every error and warning message that the module can generate
-(even the ones that will "never happen"), with a full explanation of each
-problem, one or more likely causes, and any suggested remedies.
-
-
-=head1 CONFIGURATION AND ENVIRONMENT
-
-Net::CouchDB requires no configuration files or environment variables.
-
-=head1 DEPENDENCIES
-
-A list of all the other modules that this module relies upon, including any
-restrictions on versions, and an indication whether these required modules are
-part of the standard Perl distribution, part of the module's distribution,
-or must be installed separately.
+A full description of the module and its features.
+May include numerous subsections (i.e. =head2, =head3, etc.)
 
 
-=head1 INCOMPATIBILITIES
+=head1 METHODS
 
-A list of any modules that this module cannot be used in conjunction with.
-This may be due to name conflicts in the interface, or competition for
-system or program resources, or due to internal limitations of Perl
-(for example, many modules that use source code filters are mutually
-incompatible).
+=head2 new($uri)
 
+Connects to the CouchDB server located at C<$uri>.  If there is no
+server at C<$uri>, dies with the message "Unable to connect to the CouchDB
+server at $uri."
+
+=head2 all_dbs
+
+Returns a list or arrayref, depending on context, of L<Net::CouchDB::DB>
+objects indicating all the database that are present on the server.
+
+=head2 create_db($name)
+
+Creates a new database named C<$name> on the server and returns a
+L<Net::CouchDB::DB> object.  If a database named C<$name> already
+exists, throws an exception saying "A database named '...' already exists".
+Any other error while trying to create the database generates a generic
+exception.
+
+=head2 uri
+
+Returns the base URI of the CouchDB server.
+
+=head2 version
+
+Returns the version number of this server's CouchDB software.
+
+=head2 INTERNAL METHODS
+
+These methods are primarily intended for internal use.  They're documented
+here for completeness.
+
+=head2 call($method, $relative_uri)
+
+Executes an API call against the CouchDB server.  The C<$method> is an
+HTTP verb and C<$relative_uri> is a URI relative to the server's base URI.
+Returns an L<HTTP::Response> object
+
+=head2 json
+
+Returns the L<JSON::Any> object used for parsing the server's JSON
+responses.
+
+=head2 ua
+
+Returns the L<LWP::UserAgent> object that's used when interacting with
+the CouchDB server.
 
 =head1 BUGS AND LIMITATIONS
 

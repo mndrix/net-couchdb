@@ -64,3 +64,63 @@ sub name {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Net::CouchDB::DB - a single CouchDB database
+
+=head1 DESCRIPTION
+
+A full description of the module and its features.
+May include numerous subsections (i.e. =head2, =head3, etc.)
+
+
+=head1 METHODS
+
+=head2 new(\%args)
+
+ Named arguments:
+    $couch  - required Net::CouchDb object
+    $name   - required database name
+    $create - optional boolean: should the database be created?
+
+Creates a new L<Net::CouchDB::DB> object representing a database named
+C<$name> residing on the C<$couch> server (a L<Net::CouchDB> object).
+If C<$create> is true, the database is assumed not to exist and is created
+on the server.  If attempts to create the database fail, an exception
+is thrown.
+
+=head2 delete
+
+Deletes the database from the CouchDB server.  All associated documents
+are also deleted.
+
+=head2 name
+
+Returns this database's name.
+
+=head1 INTERNAL METHODS
+
+These methods are primarily intended for internal use but documented here
+for completeness.
+
+=head2 call($method, $relative_uri)
+
+Identical to L<Net::CouchDB/call> but C<$relative_uri> is relative
+to the base URI of the current database.
+
+=head2 couch
+
+Returns a L<Net::CouchDB> object representing the server in which this
+database resides.
+
+=head1 AUTHOR
+
+Michael Hendricks  <michael@ndrix.org>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2008 Michael Hendricks (<michael@ndrix.org>). All rights
+reserved.
