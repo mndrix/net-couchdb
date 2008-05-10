@@ -3,10 +3,10 @@ use warnings;
 use Test::More;
 use Net::CouchDB;
 
-if ( not $ENV{NET_COUCHDB_URI} ) {
-    plan skip_all => 'Please set NET_COUCHDB_URI to a CouchDB instance URI';
-    exit;
-}
+use lib 't/lib';
+use Test::CouchDB;
+
+setup_tests();
 plan tests => 7;
 
 # can we connect to the server?
