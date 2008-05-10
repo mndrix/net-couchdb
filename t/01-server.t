@@ -7,7 +7,7 @@ use lib 't/lib';
 use Test::CouchDB;
 
 setup_tests();
-plan tests => 7;
+plan tests => 9;
 
 # can we connect to the server?
 my $couch = Net::CouchDB->new( $ENV{NET_COUCHDB_URI} );
@@ -17,6 +17,11 @@ isa_ok( $couch, 'Net::CouchDB', 'server object' );
 my $version = $couch->version;
 diag "CouchDB version $version";
 like $version, qr/^\d+[.]\d+[.]\d+[a]\d+$/, 'version number';
+
+# can we get all the the server meta data
+my $about = $couch->about;
+isa_ok $about, 'HASH', 'about the server';
+is $about->{couchdb}, 'Welcome', 'metadata is reasonable';
 
 # create a testing database
 my $db_name = sprintf "net-couchdb-$$-%d", int( rand 100_000 );

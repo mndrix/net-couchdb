@@ -24,9 +24,13 @@ sub new {
     }, $class;
 }
 
+sub about {
+    return shift->{about};
+}
+
 sub version {
     my ($self) = @_;
-    return $self->{about}{version};
+    return $self->about->{version};
 }
 
 sub create_db {
@@ -114,6 +118,10 @@ May include numerous subsections (i.e. =head2, =head3, etc.)
 Connects to the CouchDB server located at C<$uri>.  If there is no
 server at C<$uri>, dies with the message "Unable to connect to the CouchDB
 server at $uri."
+
+=head2 about
+
+Returns a hashref with metadata about this particular CouchDB server.
 
 =head2 all_dbs
 
