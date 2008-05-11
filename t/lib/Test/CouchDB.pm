@@ -2,15 +2,26 @@ package Test::CouchDB;
 use strict;
 use warnings;
 use Test::More;
+use Net::CouchDB;
 
 use base 'Exporter';
 BEGIN { our @EXPORT = qw( setup_tests ) };
 
 sub setup_tests {
+    my $args = shift || {};
     if ( not $ENV{NET_COUCHDB_URI} ) {
         plan skip_all => 'Please set NET_COUCHDB_URI to a CouchDB instance URI';
         exit;
     }
+
+    # create a database for testing
+    return if not $args->{create_db};
+    my $couch = Net::CouchDB->new( $ENV{NET_COUCHDB_URI} );
+    my $db_name = sprintf "net-couchdb-$$-%d", int( rand 100_000 );
+    my $db = $couch->create_db($db_name);
+    END { $db->delete if $db }
+
+    return $db;
 }
 
 1;

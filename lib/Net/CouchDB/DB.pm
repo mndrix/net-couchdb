@@ -36,6 +36,24 @@ sub new {
     return $self;
 }
 
+sub about {
+    my ($self) = @_;
+    return $self->{about} if exists $self->{about};
+
+    # no cached info, so fetch it from the server
+    my $res = $self->call( 'GET' => '' );
+    return $self->{about} = $self->couch->json->decode( $res->content )
+        if $res->code == 200;
+    die "CouchDB at " . $self->couch->uri . " encountered a problem "
+      . "when retrieving database information for the database "
+      . $self->name;
+}
+
+# quick and easy methods related to document metadata
+sub document_count         { shift->about->{doc_count}     }
+sub deleted_document_count { shift->about->{doc_del_count} }
+sub disk_size              { shift->about->{disk_size}     }
+
 sub delete {
     my ($self) = @_;
     my $res = $self->call( 'DELETE', '' );
@@ -94,10 +112,37 @@ If C<$create> is true, the database is assumed not to exist and is created
 on the server.  If attempts to create the database fail, an exception
 is thrown.
 
+=head2 about
+
+Returns a hashref with information about this database.  If the server cannot
+provide the information, an exception is thrown.  This method provides raw
+access to the details that a CouchDB server provides about a database.  It's
+generally better to use the wrapper methods (below) than to access this
+method's return value directly.  Using the wrapper methods insulates one's
+program from changes to the format of CouchDB's response format.  Wrapper
+methods include
+L</deleted_document_count>,
+L</disk_size>,
+L</document_count> and
+L</name>.
+
 =head2 delete
 
 Deletes the database from the CouchDB server.  All associated documents
 are also deleted.
+
+=head2 deleted_document_count
+
+Returns the number of deleted documents whether or not those documents
+have been removed by compaction or are still present on disk.
+
+=head2 disk_size
+
+Returns the size of the current database on disk.
+
+=head2 document_count
+
+Returns the number of non-deleted documents present in the database.
 
 =head2 name
 
