@@ -8,6 +8,6 @@ WriteMakefile(
     LICENSE      => 'mit',
     PREREQ_PM    => {
         'LWP::UserAgent' => 0,
-        'JSON::Any'      => 0,
+        'JSON'           => 2,
     },
 );

@@ -3,7 +3,7 @@ package Net::CouchDB;
 use warnings;
 use strict;
 use HTTP::Request;
-use JSON::Any;
+use JSON;
 use LWP::UserAgent;
 use Net::CouchDB::DB;
 
@@ -14,7 +14,7 @@ sub new {
     my $ua   = LWP::UserAgent->new;
     my $res = $ua->get($uri);
     die "Unable to connect to the CouchDB at $uri\n" if not $res->is_success;
-    my $json = JSON::Any->new;
+    my $json = JSON->new;
     my $about = $json->decode( $res->content );
     return bless {
         base_uri => $uri,
@@ -157,7 +157,7 @@ Returns an L<HTTP::Response> object
 
 =head2 json
 
-Returns the L<JSON::Any> object used for parsing the server's JSON
+Returns the L<JSON> object used for parsing the server's JSON
 responses.
 
 =head2 ua
