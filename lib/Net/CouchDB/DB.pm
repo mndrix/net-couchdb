@@ -1,7 +1,8 @@
 package Net::CouchDB::DB;
-
 use strict;
 use warnings;
+
+use Net::CouchDB::Document;
 
 sub new {
     my ( $class, $args ) = @_;
@@ -65,6 +66,23 @@ sub delete {
     die "Unknown status code '$code' while trying to delete the database "
       . $self->name . " from the CouchDB instance at "
       . $self->couch->uri ;
+}
+
+sub insert {
+    my ($self, $data) = @_;
+    die "insert() called without a hashref argument" if ref($data) ne 'HASH';
+    my $id = $data->{_id};
+    my ($method, $uri) = defined $id ? ('PUT', "/$id") : ('POST', '/');
+    my $res = $self->call( $method, $uri, $data );
+    if ( $res->code == 201 ) {  # it worked, so build the object
+        my $body = $self->couch->json->decode( $res->content );
+        my ( $id, $rev ) = @{$body}{ 'id', 'rev' };
+        return Net::CouchDB::Document->new( $self, $id, $rev );
+    }
+    my $code = $res->code;
+    die "Unknown status code '$code' while trying to delete the database "
+      . $self->name . " from the CouchDB instance at "
+      . $self->couch->uri;
 }
 
 sub call {
@@ -143,6 +161,12 @@ Returns the size of the current database on disk.
 =head2 document_count
 
 Returns the number of non-deleted documents present in the database.
+
+=head2 insert(\%data)
+
+Creates a new document in the database with the data in hashref C<\%data>.  On
+success, returns a new L<Net::CouchDB::Document> object.  On failure, throws
+an exception.
 
 =head2 name
 
