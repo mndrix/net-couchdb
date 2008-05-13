@@ -68,9 +68,9 @@ sub delete {
 }
 
 sub call {
-    my ( $self, $method, $partial_uri ) = @_;
+    my ( $self, $method, $partial_uri, $content ) = @_;
     $partial_uri = $self->name . $partial_uri;
-    return $self->couch->call( $method, $partial_uri );
+    return $self->couch->call( $method, $partial_uri, $content );
 }
 
 sub couch {
@@ -153,7 +153,7 @@ Returns this database's name.
 These methods are primarily intended for internal use but documented here
 for completeness.
 
-=head2 call($method, $relative_uri)
+=head2 call($method, $relative_uri [,$content] )
 
 Identical to L<Net::CouchDB/call> but C<$relative_uri> is relative
 to the base URI of the current database.
