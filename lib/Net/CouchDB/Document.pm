@@ -13,12 +13,13 @@ use constant _rev    => 2;  # revision on which this document is based
 use constant _data   => 3;  # the original data from the server
 use constant _public => 4;  # public copy of 'data'
 sub new {
-    my ( $class, $db, $id, $rev ) = @_;
+    my ($class, $args) = @_;
+
     my $self = bless [], $class;
-    $self->[_db]     = $db;
-    $self->[_id]     = $id;
-    $self->[_rev]    = $rev;
-    $self->[_data]   = undef;
+    $self->[_db]     = $args->{db};
+    $self->[_id]     = $args->{id}  || $args->{data}{_id};
+    $self->[_rev]    = $args->{rev} || $args->{data}{_rev};
+    $self->[_data]   = $args->{data};
     $self->[_public] = undef;
     return $self;
 }

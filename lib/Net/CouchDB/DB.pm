@@ -77,7 +77,11 @@ sub insert {
     if ( $res->code == 201 ) {  # it worked, so build the object
         my $body = $self->couch->json->decode( $res->content );
         my ( $id, $rev ) = @{$body}{ 'id', 'rev' };
-        return Net::CouchDB::Document->new( $self, $id, $rev );
+        return Net::CouchDB::Document->new({
+            db  => $self,
+            id  => $id,
+            rev => $rev,
+        });
     }
     my $code = $res->code;
     die "Unknown status code '$code' while trying to delete the database "
