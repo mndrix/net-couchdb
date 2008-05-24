@@ -28,6 +28,16 @@ sub db  { shift->[_db]  }
 sub id  { shift->[_id]  }
 sub rev { shift->[_rev] }
 
+sub delete {
+    my ($self) = @_;
+    my $res = $self->call( 'DELETE', '?rev=' . $self->rev );
+    return if $res->code == 202;  # all is well
+    my $code = $res->code;
+    die "Unknown status code '$code' while deleting the "
+        . 'document ' . $self->id . " from the CouchDB instance at "
+        . $self->db->couch->uri;
+}
+
 sub call {
     my ( $self, $method, $partial_uri, $content ) = @_;
     $partial_uri = '/' . $self->id . $partial_uri;
@@ -98,6 +108,11 @@ L<Net::CouchDB::DB> object such as "insert".
 
 Returns a L<Net::CouchDB::DB> object indicating the database in which
 this document is stored.
+
+=head2 delete
+
+Deletes the document from the database.  Throws an exception if there is an
+error while deleting.
 
 =head2 id
 
