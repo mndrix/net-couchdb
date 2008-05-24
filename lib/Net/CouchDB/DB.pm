@@ -89,6 +89,25 @@ sub insert {
       . $self->couch->uri;
 }
 
+sub document {
+    my ($self, $document_id) = @_;
+    die "document() called without a document ID" if not defined $document_id;
+    my $res = $self->call( 'GET', "/$document_id" );
+    # TODO should a 404 die?
+    return if $res->code == 404;    # there's no such document
+    if ( $res->code == 200 ) {  # all is well
+        my $data = $self->couch->json->decode( $res->content );
+        return Net::CouchDB::Document->new({
+            db   => $self,
+            data => $data,
+        });
+    }
+    my $code = $res->code;
+    die "Unknown status code '$code' while trying to retrieve a document "
+      . $document_id . " from the CouchDB instance at "
+      . $self->couch->uri;
+}
+
 sub call {
     my ( $self, $method, $partial_uri, $content ) = @_;
     $partial_uri = $self->name . $partial_uri;
@@ -161,6 +180,12 @@ have been removed by compaction or are still present on disk.
 =head2 disk_size
 
 Returns the size of the current database on disk.
+
+=head2 document($id)
+
+Returns a single L<Net::CouchDB::Document> object representing the
+document whose ID is C<$id>.  If the document does not exist, returns
+C<undef>.
 
 =head2 document_count
 

@@ -38,13 +38,15 @@ sub _public_data {
     my ($self) = @_;
 
     if ( not defined $self->[_public] ) {
-        my $res = $self->call( 'GET' => '' );
-        my $code = $res->code;
-        die "Unknown status code '$code' while trying to delete the database "
-          . $self->name . " from the CouchDB instance at "
-          . $self->db->couch->uri
-          if $code != 200;
-        $self->[_data] = $self->db->couch->json->decode( $res->content );
+        if ( not defined $self->[_data] ) {
+            my $res = $self->call( 'GET' => '' );
+            my $code = $res->code;
+            die "Unknown status code '$code' while trying to retrieve the "
+              . 'document ' . $self->id . " from the CouchDB instance at "
+              . $self->db->couch->uri
+              if $code != 200;
+            $self->[_data] = $self->db->couch->json->decode( $res->content );
+        }
         $self->[_public] = dclone $self->[_data];
         delete $self->[_public]->{_id};
         delete $self->[_public]->{_rev};
