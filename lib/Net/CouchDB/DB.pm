@@ -59,7 +59,7 @@ sub delete {
     my ($self) = @_;
     my $res = $self->call( 'DELETE', '' );
     my $code = $res->code;
-    return if $code == 202;
+    return if $code == 200;
     die "The database " . $self->name . " does not exist on the CouchDB "
       . "instance at " . $self->couch->uri . "\n"
       if $code == 404;

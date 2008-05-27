@@ -31,7 +31,7 @@ sub rev { shift->[_rev] }
 sub delete {
     my ($self) = @_;
     my $res = $self->call( 'DELETE', '?rev=' . $self->rev );
-    return if $res->code == 202;  # all is well
+    return if $res->code == 200;  # all is well
     my $code = $res->code;
     die "Unknown status code '$code' while deleting the "
         . 'document ' . $self->id . " from the CouchDB instance at "
