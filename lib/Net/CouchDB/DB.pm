@@ -75,6 +75,22 @@ sub delete {
       . $self->couch->uri ;
 }
 
+sub compact {
+    my $self = shift;
+    my $args = shift || {};
+
+    my $res = $self->call( 'POST', '/_compact' );
+    my $code = $res->code;
+    if ( $code == 202 ) {
+        return if $args->{async};
+        sleep 1 while $self->is_compacting;
+        return;
+    }
+    die "Unknown status code '$code' while trying to compact the database "
+      . $self->name . " from the CouchDB instance at "
+      . $self->couch->uri ;
+}
+
 sub insert {
     my ($self, $data) = @_;
     die "insert() called without a hashref argument" if ref($data) ne 'HASH';
@@ -172,7 +188,23 @@ methods include
 L</deleted_document_count>,
 L</disk_size>,
 L</document_count> and
+L</is_compact_running> and
 L</name>.
+
+An optional hashref of named arguments can be provided.  If the named argument
+"cached" is true, a cached copy of the previous information is returned.
+Otherwise, the information is fetched again from the server.
+
+=head2 compact
+
+Compacts the database to reduce size on disk.  This is done, in part, by
+removing outdated document revisions.
+
+An optional hashref of name arguments can be provided.  If the named argument
+"async" is true, the method returns immediately.  In such a case, one must
+check L</is_compact_running> to determine whether or not the compaction phase
+is complete.  By default, this method waits until compaction is finished and
+then returns.
 
 =head2 delete
 
