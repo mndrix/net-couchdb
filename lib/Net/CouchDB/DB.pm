@@ -38,8 +38,9 @@ sub new {
 }
 
 sub about {
-    my ($self) = @_;
-    return $self->{about} if exists $self->{about};
+    my $self = shift;
+    my $args = shift || {};
+    return $self->{about} if $args->{cached} and exists $self->{about};
 
     # no cached info, so fetch it from the server
     my $res = $self->call( 'GET' => '' );
@@ -51,9 +52,15 @@ sub about {
 }
 
 # quick and easy methods related to document metadata
-sub document_count         { shift->about->{doc_count}     }
-sub deleted_document_count { shift->about->{doc_del_count} }
-sub disk_size              { shift->about->{disk_size}     }
+sub document_count         { shift->about(shift)->{doc_count}     }
+sub deleted_document_count { shift->about(shift)->{doc_del_count} }
+sub disk_size              { shift->about(shift)->{disk_size}     }
+
+sub is_compacting {
+    my ($self) = @_;
+    return 1 if $self->about->{compact_running};
+    return;
+}
 
 sub delete {
     my ($self) = @_;
@@ -176,10 +183,12 @@ are also deleted.
 
 Returns the number of deleted documents whether or not those documents
 have been removed by compaction or are still present on disk.
+Accepts the same arguments as L</about>.
 
 =head2 disk_size
 
 Returns the size of the current database on disk.
+Accepts the same arguments as L</about>.
 
 =head2 document($id)
 
@@ -190,12 +199,18 @@ C<undef>.
 =head2 document_count
 
 Returns the number of non-deleted documents present in the database.
+Accepts the same arguments as L</about>.
 
 =head2 insert(\%data)
 
 Creates a new document in the database with the data in hashref C<\%data>.  On
 success, returns a new L<Net::CouchDB::Document> object.  On failure, throws
 an exception.
+
+=head2 is_compacting
+
+Returns a true value if the database is currently running compaction.
+Otherwise, it returns a false value.
 
 =head2 name
 
