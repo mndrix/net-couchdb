@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use Net::CouchDB::Document;
+use Storable qw( dclone );
 
 sub new {
     my ( $class, $args ) = @_;
@@ -110,6 +111,55 @@ sub insert {
     die "Unknown status code '$code' while trying to delete the database "
       . $self->name . " from the CouchDB instance at "
       . $self->couch->uri;
+}
+
+sub bulk {
+    my ($self, $args) = @_;
+    die "bulk() called without a hashref argument" if ref($args) ne 'HASH';
+    my @docs;
+    if ( my $hashes = $args->{insert} ) {
+        for my $hash (@$hashes) {
+            die "Only plain hashes may be bulk inserted\n"
+              if ref($hash) ne 'HASH';
+            push @docs, $hash;
+        }
+    }
+    if ( my $docs = $args->{delete} ) {
+        for my $doc (@$docs) {
+            die "Only document objects may be bulk deleted\n"
+              if not eval { $doc->isa('Net::CouchDB::Document') };
+            push @docs, {
+                _id => $doc->id,
+                _rev => $doc->rev,
+                _deleted => JSON::XS::true,
+            };
+        }
+    }
+    if ( my $docs = $args->{update} ) {
+        for my $doc (@$docs) {
+            die "Only document objects may be bulk updated\n"
+              if not eval { $doc->isa('Net::CouchDB::Document') };
+            my $copy = dclone { %$doc };
+            $copy->{_id}  = $doc->id;
+            $copy->{_rev} = $doc->rev;
+            push @docs, $copy;
+        }
+    }
+    my $res = $self->call( 'POST', '/_bulk_docs', { docs => \@docs } );
+    if ( $res->code == 201 ) {
+        my $body = $self->couch->json->decode( $res->content );
+        use Data::Dumper;
+        die Dumper($body);
+        my ( $id, $rev ) = @{$body}{ 'id', 'rev' };
+        return Net::CouchDB::Document->new({
+            db  => $self,
+            id  => $id,
+            rev => $rev,
+        });
+    }
+    my $code = $res->code;
+    die "Unknown status code '$code' while trying to bulk change documents "
+      . " from the CouchDB instance at " . $self->couch->uri;
 }
 
 sub document {
