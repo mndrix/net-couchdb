@@ -19,7 +19,7 @@ sub setup_tests {
     my $couch = Net::CouchDB->new( $ENV{NET_COUCHDB_URI} );
     my $db_name = sprintf "net-couchdb-$$-%d", int( rand 100_000 );
     my $db = $couch->create_db($db_name);
-    END { $db->delete if $db }
+    END { $db->delete if $db and !$ENV{DEBUG} }
 
     return $db;
 }
