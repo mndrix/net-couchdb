@@ -117,6 +117,7 @@ sub bulk {
     my ($self, $args) = @_;
     die "bulk() called without a hashref argument" if ref($args) ne 'HASH';
     my @docs;
+    my %input_doc_ids;
     if ( my $hashes = $args->{insert} ) {
         for my $hash (@$hashes) {
             die "Only plain hashes may be bulk inserted\n"
@@ -133,6 +134,7 @@ sub bulk {
                 _rev => $doc->rev,
                 _deleted => JSON::XS::true,
             };
+            $input_doc_ids{ $doc->id } = [ 'delete', $doc ];
         }
     }
     if ( my $docs = $args->{update} ) {
@@ -143,19 +145,34 @@ sub bulk {
             $copy->{_id}  = $doc->id;
             $copy->{_rev} = $doc->rev;
             push @docs, $copy;
+            $input_doc_ids{ $doc->id } = [ 'update', $doc ];
         }
     }
     my $res = $self->call( 'POST', '/_bulk_docs', { docs => \@docs } );
     if ( $res->code == 201 ) {
         my $body = $self->couch->json->decode( $res->content );
-        use Data::Dumper;
-        die Dumper($body);
-        my ( $id, $rev ) = @{$body}{ 'id', 'rev' };
-        return Net::CouchDB::Document->new({
-            db  => $self,
-            id  => $id,
-            rev => $rev,
-        });
+#       use Data::Dumper; warn Dumper($body);
+        my @inserted_docs;
+        NEWREV:
+        for my $new ( @{ $body->{new_revs} } ) {
+            my ( $id, $rev ) = @{$new}{ 'id', 'rev' };
+            if ( my $request = $input_doc_ids{$id} ) {  # update or delete
+                my ($operation, $doc) = @$request;
+                $doc->_you_are_now({
+                    rev     => $rev,
+                    deleted => $operation eq 'delete',
+                });
+                next NEWREV;
+            }
+
+            # it must have been an insert
+            push @inserted_docs, Net::CouchDB::Document->new({
+                db  => $self,
+                id  => $id,
+                rev => $rev,
+            });
+        }
+        return wantarray ? @inserted_docs : \@inserted_docs;
     }
     my $code = $res->code;
     die "Unknown status code '$code' while trying to bulk change documents "
@@ -244,6 +261,22 @@ L</name>.
 An optional hashref of named arguments can be provided.  If the named argument
 "cached" is true, a cached copy of the previous information is returned.
 Otherwise, the information is fetched again from the server.
+
+=head2 bulk(\%args)
+
+ Named arguments:
+    @insert - an optional arrayref of hashes to insert into the database
+    @delete - an optional arrayref of Document objects to delete
+    @update - an optional arrayref of Document objects to update
+
+This method performs bulk insert, update and/or delete operations with a
+single request to the server.  Additionally, the changes are made atomically.
+If one change fails, all changes fail together.  For each inserted hashref, a
+new L<Net::CouchDB::Document> object is returned.  Documents which were
+deleted will be modified in place so that the
+L<Net::CouchDB::Document/is_deleted> method returns true.  Documents which
+were updated are modified in place so that they're aware of their new values
+in the database.
 
 =head2 compact
 

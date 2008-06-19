@@ -5,16 +5,16 @@ use Test::More;
 use lib 't/lib';
 use Test::CouchDB;
 my $couch = setup_tests({ create_db => 1 });
-plan tests => 7;
+plan tests => 14;
 
-# TODO delete this once done testing
+# create some documents to work with
 my $foo = $couch->insert({ foo => 'bar' });
-warn "foo is " . $foo->id . '/' . $foo->rev . "\n";
 my $bar = $couch->insert({ bar => 'baz' });
-warn "bar is " . $bar->id . '/' . $bar->rev . "\n";
 $bar->{bar} = 'this is a change';
+my $bar_original_rev = $bar->rev;
 
-# bulk insert
+# bulk insert, delete and update the documents
+ok !$foo->is_deleted, 'foo has not been deleted yet';
 my @docs = $couch->bulk({
     insert => [
         { first  => 1 },
@@ -24,20 +24,30 @@ my @docs = $couch->bulk({
     delete => [ $foo ],
     update => [ $bar ],
 });
+cmp_ok scalar @docs, '==', 3, 'only inserted documents are returned';
 is $docs[0]{first},  '1', 'first bulk document';
 is $docs[1]{second}, '2', 'second bulk document';
 is $docs[2]{third},  '3', 'third bulk document';
 is $docs[2]->id, 'drei', 'explicit document id';
+ok $foo->is_deleted, 'foo was deleted';
+is $bar->{bar}, 'this is a change', 'bar was updated';
+isnt $bar->rev, $bar_original_rev, 'bar has a new revision';
 
-# bulk insert, delete and update
-my ( $first, $second, $third ) = @docs[ 0, 1 ];
-my $third_rev = $third->rev;
-$third->{third} = '3.0';
-@docs = $couch->bulk({
-    insert => [ { fourth => 4 } ],
-    delete => [ $first, $second ],
-    update => [ $third ],
-});
-cmp_ok scalar @docs, 2, 'document count after a bulk insert/update/delete';
-is $docs[0]{fourth}, '4', 'fourth bulk document';
-isnt $docs[1]->rev, $third_rev, 'third has a new revision';
+
+# make sure that bulk() handles transactional failures correctly
+@docs = eval {
+    $couch->bulk({
+        insert => [
+            { _id => 'drei', fail => 'document with this ID already exists' },
+        ],
+        delete => [ $bar ],
+    });
+};
+like $@, qr/412.*trying to bulk change/, 'conflict detected';
+cmp_ok scalar @docs, '==', 0, 'no documents returned';
+is $couch->document('drei')->{fail}, undef, 'document not inserted';
+ok !$bar->is_deleted, 'bar was not deleted';
+isa_ok $couch->document( $bar->id ), 'Net::CouchDB::Document','being safe';
+
+# TODO make sure that bulk( update => $foo, delete => $foo ) dies a miserable
+# TODO death
