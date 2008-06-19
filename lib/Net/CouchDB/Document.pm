@@ -22,17 +22,22 @@ sub new {
     $self->[_rev]    = $args->{rev} || $args->{data}{_rev};
     $self->[_data]   = $args->{data};
     $self->[_public] = undef;
+    $self->[_deleted] = 0;
     return $self;
 }
 
 sub db  { shift->[_db]  }
 sub id  { shift->[_id]  }
 sub rev { shift->[_rev] }
+sub is_deleted { shift->[_deleted] }
 
 sub delete {
     my ($self) = @_;
     my $res = $self->call( 'DELETE', '?rev=' . $self->rev );
-    return if $res->code == 200;  # all is well
+    if ( $res->code == 200 ) {  # all is well
+        $self->[_deleted] = 1;
+        return;
+    }
     my $code = $res->code;
     die "Unknown status code '$code' while deleting the "
         . 'document ' . $self->id . " from the CouchDB instance at "
