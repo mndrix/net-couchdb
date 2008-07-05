@@ -52,17 +52,15 @@ sub db {
 
 sub all_dbs {
     my ($self) = @_;
-    my $res = $self->call( 'GET', '_all_dbs' );
-    die "Unable to retrieve a list of all databases from the CouchDB "
-      . "instance located at " . $self->uri . ".  Got HTTP code "
-      . $res->code . ".\n" if $res->code != 200;
-
-    my $db_list = $self->json->decode( $res->content );
+    my $res = $self->request( 'GET', '_all_dbs', {
+        description => 'retrieve a list of all documents',
+        200         => 'ok',
+    });
 
     # inflate the names into DB objects
     my @dbs = map {
         Net::CouchDB::DB->new({ couch => $self, name => $_ })
-    } @$db_list;
+    } @{ $res->content };
 
     return wantarray ? @dbs : \@dbs;
 }
