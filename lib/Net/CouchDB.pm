@@ -6,6 +6,7 @@ use HTTP::Request;
 use JSON;
 use LWP::UserAgent;
 use Net::CouchDB::DB;
+use Net::CouchDB::Response;
 
 our $VERSION = '0.01';
 our $JSON;
@@ -70,11 +71,30 @@ sub all_dbs {
 
 sub call {
     my ( $self, $method, $partial_uri, $content ) = @_;
+    warn "call() is DEPRECATED\n";
     die "Invalid content given to call()"
       if defined($content) && ref($content) ne 'HASH';
     my $req = HTTP::Request->new( $method, $self->uri . '/' . $partial_uri );
     $req->content( $self->json->encode($content) ) if defined $content;
     return $self->ua->request($req);
+}
+
+sub request {
+    my $self         = shift;
+    my $method       = shift;
+    my $relative_uri = !ref( $_[0] ) ? shift() : '';
+    my $args         = shift || {};
+
+    my $uri = URI->new_abs( $relative_uri, $self->uri );
+    my $req = HTTP::Request->new( $method, $uri );
+    $req->header( Accept => 'application/json' );
+
+    # set the request body if specified
+    if ( my $body = $args->{body} ) {
+        $req->content( ref $body ? $self->json->encode($body) : $body );
+    }
+
+    return Net::CouchDB::Response->new( $self->ua->request($req) );
 }
 
 sub json {
@@ -166,6 +186,8 @@ These methods are primarily intended for internal use.  They're documented
 here for completeness.
 
 =head2 call($method, $relative_uri [,$content] )
+
+This method is B<deprecated>.  Use L</request> instead.
 
 Executes an API call against the CouchDB server.  The C<$method> is an
 HTTP verb and C<$relative_uri> is a URI relative to the server's base URI.

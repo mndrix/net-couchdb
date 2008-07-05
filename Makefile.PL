@@ -10,5 +10,6 @@ WriteMakefile(
         'LWP::UserAgent' => 0,
         'JSON'           => 2,
         'Storable'       => 0,  # core since 5.7.3
+        'URI'            => 0,  # already required by LWP::UserAgent
     },
 );
