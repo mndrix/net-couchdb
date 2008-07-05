@@ -8,18 +8,17 @@ use LWP::UserAgent;
 use Net::CouchDB::DB;
 
 our $VERSION = '0.01';
+our $JSON;
 
 sub new {
     my ($class, $uri) = @_;
     my $ua   = LWP::UserAgent->new;
     my $res = $ua->get($uri);
     die "Unable to connect to the CouchDB at $uri\n" if not $res->is_success;
-    my $json = JSON->new;
-    my $about = $json->decode( $res->content );
+    my $about = $class->json->decode( $res->content );
     return bless {
         base_uri => $uri,
         about    => $about,
-        json     => $json,
         ua       => $ua,
     }, $class;
 }
@@ -80,7 +79,9 @@ sub call {
 
 sub json {
     my ($self) = @_;
-    return $self->{json};
+    our $JSON;
+    return $JSON if $JSON;
+    return $JSON = JSON->new;
 }
 
 sub ua {
@@ -175,8 +176,8 @@ Returns an L<HTTP::Response> object.
 
 =head2 json
 
-Returns the L<JSON> object used for parsing the server's JSON
-responses.
+A class method that returns the L<JSON> object used for parsing the server's
+JSON responses.
 
 =head2 ua
 
