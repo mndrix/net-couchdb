@@ -18,7 +18,7 @@ sub request {
     $req->header( Accept => 'application/json' );
 
     # set the request body if specified
-    if ( my $body = $args->{body} ) {
+    if ( my $body = $args->{content} ) {
         $req->content( ref $body ? Net::CouchDB->json->encode($body) : $body );
     }
 
@@ -118,6 +118,12 @@ exception matching "The document is no longer available" is thrown.  For any
 other status code, an exception is thrown.
 
 Of course, multiple status codes may be listed as 'ok'.
+
+=head3 content
+
+Specifies the content of the HTTP request.  If this argument is a Perl
+reference, it will be serialized to JSON.  Otherwise, the content is used
+directly.
 
 =head3 description
 

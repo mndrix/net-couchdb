@@ -40,12 +40,11 @@ sub about {
     return $self->{about} if $args->{cached} and exists $self->{about};
 
     # no cached info, so fetch it from the server
-    my $res = $self->call( 'GET' => '' );
-    return $self->{about} = $self->couch->json->decode( $res->content )
-        if $res->code == 200;
-    die "CouchDB at " . $self->couch->uri . " encountered a problem "
-      . "when retrieving database information for the database "
-      . $self->name;
+    my $res = $self->request('GET', {
+        description => 'fetch DB meta data',
+        200         => 'ok',
+    });
+    return $self->{about} = $res->content;
 }
 
 # quick and easy methods related to document metadata
@@ -61,31 +60,26 @@ sub is_compacting {
 
 sub delete {
     my ($self) = @_;
-    my $res = $self->call( 'DELETE', '' );
-    my $code = $res->code;
-    return if $code == 200;
-    die "The database " . $self->name . " does not exist on the CouchDB "
-      . "instance at " . $self->couch->uri . "\n"
-      if $code == 404;
-    die "Unknown status code '$code' while trying to delete the database "
-      . $self->name . " from the CouchDB instance at "
-      . $self->couch->uri ;
+    my $name = $self->name;
+    my $res = $self->request('DELETE', {
+        description => "delete the DB named $name",
+        200         => 'ok',
+        404         => "The database $name does not exist",
+    });
+    return;
 }
 
 sub compact {
     my $self = shift;
     my $args = shift || {};
 
-    my $res = $self->call( 'POST', '/_compact' );
-    my $code = $res->code;
-    if ( $code == 202 ) {
-        return if $args->{async};
-        sleep 1 while $self->is_compacting;
-        return;
-    }
-    die "Unknown status code '$code' while trying to compact the database "
-      . $self->name . " from the CouchDB instance at "
-      . $self->couch->uri ;
+    my $res = $self->request( 'POST', '_compact', {
+        description => 'compact the DB named ' . $self->name,
+        202         => 'ok',
+    });
+    return if $args->{async};
+    sleep 1 while $self->is_compacting;
+    return;
 }
 
 sub insert {
@@ -102,21 +96,22 @@ sub _insert_single {
     my ($self, $data) = @_;
     die "insert() called without a hashref argument" if ref($data) ne 'HASH';
     my $id = $data->{_id};
-    my ($method, $uri) = defined $id ? ('PUT', "/$id") : ('POST', '/');
-    my $res = $self->call( $method, $uri, $data );
-    if ( $res->code == 201 ) {  # it worked, so build the object
-        my $body = $self->couch->json->decode( $res->content );
-        my ( $id, $rev ) = @{$body}{ 'id', 'rev' };
-        return Net::CouchDB::Document->new({
-            db  => $self,
-            id  => $id,
-            rev => $rev,
-        });
-    }
-    my $code = $res->code;
-    die "Unknown status code '$code' while trying to delete the database "
-      . $self->name . " from the CouchDB instance at "
-      . $self->couch->uri;
+    my @args = defined $id ? ('PUT', $id) : ('POST');
+    my $res = $self->request(@args, {
+        description => 'create a document',
+        content     => $data,
+        201         => 'ok',
+    });
+
+    # it worked, so build the object
+    my $body = $res->content;
+    $id = $body->{id};
+    my $rev = $body->{rev};
+    return Net::CouchDB::Document->new({
+        db  => $self,
+        id  => $id,
+        rev => $rev,
+    });
 }
 
 sub _insert_bulk {
@@ -193,20 +188,18 @@ sub bulk {
 sub document {
     my ($self, $document_id) = @_;
     die "document() called without a document ID" if not defined $document_id;
-    my $res = $self->call( 'GET', "/$document_id" );
-    # TODO should a 404 die?
+    my $res = $self->request( 'GET', $document_id, {
+       description => 'fetch a document',
+       404         => 'ok',  # should this die instead?
+       200         => 'ok',
+    });
     return if $res->code == 404;    # there's no such document
-    if ( $res->code == 200 ) {  # all is well
-        my $data = $self->couch->json->decode( $res->content );
-        return Net::CouchDB::Document->new({
-            db   => $self,
-            data => $data,
-        });
-    }
-    my $code = $res->code;
-    die "Unknown status code '$code' while trying to retrieve a document "
-      . $document_id . " from the CouchDB instance at "
-      . $self->couch->uri;
+
+    # all is well
+    return Net::CouchDB::Document->new({
+        db   => $self,
+        data => $res->content,
+    });
 }
 
 sub all_documents {
@@ -249,7 +242,7 @@ sub name {
 
 sub uri {
     my ($self) = @_;
-    return URI->new_abs( $self->name, $self->couch->uri );
+    return URI->new_abs( $self->name . '/' , $self->couch->uri );
 }
 
 1;
