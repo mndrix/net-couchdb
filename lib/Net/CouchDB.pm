@@ -6,6 +6,7 @@ use HTTP::Request;
 use JSON;
 use LWP::UserAgent;
 use Net::CouchDB::DB;
+use Net::CouchDB::Request;
 use Net::CouchDB::Response;
 
 our $VERSION = '0.01';
@@ -75,24 +76,6 @@ sub call {
     my $req = HTTP::Request->new( $method, $self->uri . '/' . $partial_uri );
     $req->content( $self->json->encode($content) ) if defined $content;
     return $self->ua->request($req);
-}
-
-sub request {
-    my $self         = shift;
-    my $method       = shift;
-    my $relative_uri = !ref( $_[0] ) ? shift() : '';
-    my $args         = shift || {};
-
-    my $uri = URI->new_abs( $relative_uri, $self->uri );
-    my $req = HTTP::Request->new( $method, $uri );
-    $req->header( Accept => 'application/json' );
-
-    # set the request body if specified
-    if ( my $body = $args->{body} ) {
-        $req->content( ref $body ? $self->json->encode($body) : $body );
-    }
-
-    return Net::CouchDB::Response->new( $self->ua->request($req) );
 }
 
 sub json {
