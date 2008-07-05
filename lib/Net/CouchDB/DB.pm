@@ -2,6 +2,8 @@ package Net::CouchDB::DB;
 use strict;
 use warnings;
 
+use URI;
+use Net::CouchDB::Request;
 use Net::CouchDB::Document;
 use Storable qw( dclone );
 
@@ -16,20 +18,12 @@ sub new {
 
     # create the new database if needed
     if ( $args->{create} ) {
-        my $res = $self->call( 'PUT', '' );
-        my $code = $res->code;
-        if ( $code == 201 ) {
-            return $self;  # no need to check the content
-        }
-        elsif ( $code == 409 ) {
-            die "A database named '$name' already exists\n";
-        }
-        else {
-            my $uri = $self->couch->uri;
-            my $details = $self->couch->json->decode( $res->content );
-            my $error = ref $details ? $details->{reason} : 'unknown';
-            die "CouchDB at $uri encountered the following error: $error\n";
-        }
+        $self->request('PUT', {
+            description => "create a database named '$name'",
+            201         => 'ok',
+            409         => "A database named '$name' already exists",
+        });
+        return $self;  # errors would have caused an exception
     }
 
     # TODO $self->call('GET', '') to verify that the DB exists
@@ -37,6 +31,8 @@ sub new {
     # TODO which returns details about the database
     return $self;
 }
+
+sub ua { shift->couch->ua }  # use couch's UserAgent
 
 sub about {
     my $self = shift;
@@ -251,6 +247,11 @@ sub name {
     return $self->{name};
 }
 
+sub uri {
+    my ($self) = @_;
+    return URI->new_abs( $self->name, $self->couch->uri );
+}
+
 1;
 
 __END__
@@ -376,6 +377,10 @@ Otherwise, it returns a false value.
 
 Returns this database's name.
 
+=head2 uri
+
+Returns a L<URI> object representing the URI for this database.
+
 =head1 INTERNAL METHODS
 
 These methods are primarily intended for internal use but documented here
@@ -390,6 +395,10 @@ to the base URI of the current database.
 
 Returns a L<Net::CouchDB> object representing the server in which this
 database resides.
+
+=head2 ua
+
+Returns the L<LWP::UserAgent> object used for making HTTP requests.
 
 =head1 AUTHOR
 
