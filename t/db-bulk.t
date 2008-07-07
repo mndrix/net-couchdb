@@ -5,7 +5,7 @@ use Test::More;
 use lib 't/lib';
 use Test::CouchDB;
 my $couch = setup_tests({ create_db => 1 });
-plan tests => 14;
+plan tests => 15;
 
 # create some documents to work with
 my $foo = $couch->insert({ foo => 'bar' });
@@ -49,5 +49,11 @@ is $couch->document('drei')->{fail}, undef, 'document not inserted';
 ok !$bar->is_deleted, 'bar was not deleted';
 isa_ok $couch->document( $bar->id ), 'Net::CouchDB::Document','being safe';
 
-# TODO make sure that bulk( update => $foo, delete => $foo ) dies a miserable
-# TODO death
+# we shouldn't be allowed to update and delete a document in one go
+# because CouchDB doesn't promise a consistent order for the inserts
+# and deletes
+{
+    my $drei = $couch->document('drei');
+    eval { $couch->bulk({ update => [ $drei ], delete => [ $drei ] }) };
+    like $@, qr/'412'/, 'nonsense transactions are prevented';
+}
