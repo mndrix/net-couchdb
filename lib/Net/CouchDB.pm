@@ -42,6 +42,14 @@ sub create_db {
     });
 }
 
+sub db {
+    my ($self, $name) = @_;
+    return Net::CouchDB::DB->new({
+        couch  => $self,
+        name   => $name,
+    });
+}
+
 sub all_dbs {
     my ($self) = @_;
     my $res = $self->call( 'GET', '_all_dbs' );
@@ -138,6 +146,10 @@ L<Net::CouchDB::DB> object.  If a database named C<$name> already
 exists, throws an exception saying "A database named '...' already exists".
 Any other error while trying to create the database generates a generic
 exception.
+
+=head2 db($name)
+
+Returns a L<Net::CouchDB::DB> object for the database named C<$name>.
 
 =head2 uri
 
