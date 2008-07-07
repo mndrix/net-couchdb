@@ -5,7 +5,7 @@ use Test::More;
 use lib 't/lib';
 use Test::CouchDB;
 my $couch = setup_tests({ create_db => 1 });
-plan tests => 8;
+plan tests => 14;
 
 # insert and let CouchDB assign a document ID
 {
@@ -23,4 +23,21 @@ plan tests => 8;
     is $document->id, '42', 'client-supplied ID';
     ok $document->rev, 'document revision';
     is_deeply \%{$document}, { etc => ['value'] }, 'content is right';
+}
+
+# insert a couple documents at once (bulk insert)
+{
+    my @documents = $couch->insert(
+        { _id => 8675309 },
+        { _id => 7511111 },
+    );
+    my $document = shift @documents;
+    isa_ok $document, 'Net::CouchDB::Document', 'bulk insert: 1';
+    is $document->id, '8675309', '… id';
+    ok $document->rev, '… rev';
+
+    $document = shift @documents;
+    isa_ok $document, 'Net::CouchDB::Document', 'bulk insert: 2';
+    is $document->id, '7511111', '… id';
+    ok $document->rev, '… rev';
 }

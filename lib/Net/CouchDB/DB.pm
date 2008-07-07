@@ -93,6 +93,16 @@ sub compact {
 }
 
 sub insert {
+    my $self = shift;
+    if    ( @_ == 0 ) { die "Too few arguments for insert()\n" }
+    elsif ( @_ == 1 ) { $self->_insert_single(@_) }
+    else              { $self->_insert_bulk(@_)   }
+}
+
+# is there any reason not to implement this in terms of _insert_bulk?
+# the HTTP request from this method is cleaner, but is that important
+# enough to maintain extra code?
+sub _insert_single {
     my ($self, $data) = @_;
     die "insert() called without a hashref argument" if ref($data) ne 'HASH';
     my $id = $data->{_id};
@@ -111,6 +121,11 @@ sub insert {
     die "Unknown status code '$code' while trying to delete the database "
       . $self->name . " from the CouchDB instance at "
       . $self->couch->uri;
+}
+
+sub _insert_bulk {
+    my ($self, @documents) = @_;
+    return $self->bulk({ insert => \@documents });
 }
 
 sub bulk {
@@ -316,11 +331,12 @@ C<undef>.
 Returns the number of non-deleted documents present in the database.
 Accepts the same arguments as L</about>.
 
-=head2 insert(\%data)
+=head2 insert
 
-Creates a new document in the database with the data in hashref C<\%data>.  On
-success, returns a new L<Net::CouchDB::Document> object.  On failure, throws
-an exception.
+Given a list of hashrefs, creates a new document in the database for each one.
+On success, returns a list of L<Net::CouchDB::Document> objects.  On failure,
+throws an exception.  Inserted documents may be assigned a specific document
+ID by providing a "_id" key in the hashref.
 
 =head2 is_compacting
 
