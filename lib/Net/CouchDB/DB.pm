@@ -131,6 +131,28 @@ sub document {
       . $self->couch->uri;
 }
 
+sub all_documents {
+    my ($self) = @_;
+    my $res = $self->call( 'GET', '/_all_docs' );
+    my $code = $res->code;
+    die "Unknown status code '$code' while trying to retrieve all documents "
+      . " from the CouchDB instance at " . $self->couch->uri
+      if $code != 200;
+
+    # all is well
+    my $data = $self->couch->json->decode( $res->content );
+    my @documents;
+    for my $document ( @{ $data->{rows} } ) {
+        push @documents, Net::CouchDB::Document->new({
+            db  => $self,
+            id  => $document->{id},
+            rev => $document->{value}{rev},
+        });
+    }
+
+    return wantarray ? @documents : \@documents;
+}
+
 sub call {
     my ( $self, $method, $partial_uri, $content ) = @_;
     $partial_uri = $self->name . $partial_uri;
@@ -194,6 +216,12 @@ L</name>.
 An optional hashref of named arguments can be provided.  If the named argument
 "cached" is true, a cached copy of the previous information is returned.
 Otherwise, the information is fetched again from the server.
+
+=head2 all_documents
+
+Returns a list (or arrayref, depending on context) of
+L<Net::CouchDB::Document> objects representing all the documents in the
+database.
 
 =head2 compact
 
