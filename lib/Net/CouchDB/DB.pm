@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use Net::CouchDB::Document;
+use Storable qw( dclone );
 
 sub new {
     my ( $class, $args ) = @_;
@@ -92,6 +93,16 @@ sub compact {
 }
 
 sub insert {
+    my $self = shift;
+    if    ( @_ == 0 ) { die "Too few arguments for insert()\n" }
+    elsif ( @_ == 1 ) { $self->_insert_single(@_) }
+    else              { $self->_insert_bulk(@_)   }
+}
+
+# is there any reason not to implement this in terms of _insert_bulk?
+# the HTTP request from this method is cleaner, but is that important
+# enough to maintain extra code?
+sub _insert_single {
     my ($self, $data) = @_;
     die "insert() called without a hashref argument" if ref($data) ne 'HASH';
     my $id = $data->{_id};
@@ -110,6 +121,77 @@ sub insert {
     die "Unknown status code '$code' while trying to delete the database "
       . $self->name . " from the CouchDB instance at "
       . $self->couch->uri;
+}
+
+sub _insert_bulk {
+    my ($self, @documents) = @_;
+    return $self->bulk({ insert => \@documents });
+}
+
+sub bulk {
+    my ($self, $args) = @_;
+    die "bulk() called without a hashref argument" if ref($args) ne 'HASH';
+    my @docs;
+    my %input_doc_ids;
+    if ( my $hashes = $args->{insert} ) {
+        for my $hash (@$hashes) {
+            die "Only plain hashes may be bulk inserted\n"
+              if ref($hash) ne 'HASH';
+            push @docs, $hash;
+        }
+    }
+    if ( my $docs = $args->{delete} ) {
+        for my $doc (@$docs) {
+            die "Only document objects may be bulk deleted\n"
+              if not eval { $doc->isa('Net::CouchDB::Document') };
+            push @docs, {
+                _id => $doc->id,
+                _rev => $doc->rev,
+                _deleted => JSON::XS::true,
+            };
+            $input_doc_ids{ $doc->id } = [ 'delete', $doc ];
+        }
+    }
+    if ( my $docs = $args->{update} ) {
+        for my $doc (@$docs) {
+            die "Only document objects may be bulk updated\n"
+              if not eval { $doc->isa('Net::CouchDB::Document') };
+            my $copy = dclone { %$doc };
+            $copy->{_id}  = $doc->id;
+            $copy->{_rev} = $doc->rev;
+            push @docs, $copy;
+            $input_doc_ids{ $doc->id } = [ 'update', $doc ];
+        }
+    }
+    my $res = $self->call( 'POST', '/_bulk_docs', { docs => \@docs } );
+    if ( $res->code == 201 ) {
+        my $body = $self->couch->json->decode( $res->content );
+#       use Data::Dumper; warn Dumper($body);
+        my @inserted_docs;
+        NEWREV:
+        for my $new ( @{ $body->{new_revs} } ) {
+            my ( $id, $rev ) = @{$new}{ 'id', 'rev' };
+            if ( my $request = $input_doc_ids{$id} ) {  # update or delete
+                my ($operation, $doc) = @$request;
+                $doc->_you_are_now({
+                    rev     => $rev,
+                    deleted => $operation eq 'delete',
+                });
+                next NEWREV;
+            }
+
+            # it must have been an insert
+            push @inserted_docs, Net::CouchDB::Document->new({
+                db  => $self,
+                id  => $id,
+                rev => $rev,
+            });
+        }
+        return wantarray ? @inserted_docs : \@inserted_docs;
+    }
+    my $code = $res->code;
+    die "Unknown status code '$code' while trying to bulk change documents "
+      . " from the CouchDB instance at " . $self->couch->uri;
 }
 
 sub document {
@@ -217,11 +299,28 @@ An optional hashref of named arguments can be provided.  If the named argument
 "cached" is true, a cached copy of the previous information is returned.
 Otherwise, the information is fetched again from the server.
 
+
 =head2 all_documents
 
 Returns a list (or arrayref, depending on context) of
 L<Net::CouchDB::Document> objects representing all the documents in the
 database.
+
+=head2 bulk(\%args)
+
+ Named arguments:
+    @insert - an optional arrayref of hashes to insert into the database
+    @delete - an optional arrayref of Document objects to delete
+    @update - an optional arrayref of Document objects to update
+
+This method performs bulk insert, update and/or delete operations with a
+single request to the server.  Additionally, the changes are made atomically.
+If one change fails, all changes fail together.  For each inserted hashref, a
+new L<Net::CouchDB::Document> object is returned.  Documents which were
+deleted will be modified in place so that the
+L<Net::CouchDB::Document/is_deleted> method returns true.  Documents which
+were updated are modified in place so that they're aware of their new values
+in the database.
 
 =head2 compact
 
@@ -261,11 +360,12 @@ C<undef>.
 Returns the number of non-deleted documents present in the database.
 Accepts the same arguments as L</about>.
 
-=head2 insert(\%data)
+=head2 insert
 
-Creates a new document in the database with the data in hashref C<\%data>.  On
-success, returns a new L<Net::CouchDB::Document> object.  On failure, throws
-an exception.
+Given a list of hashrefs, creates a new document in the database for each one.
+On success, returns a list of L<Net::CouchDB::Document> objects.  On failure,
+throws an exception.  Inserted documents may be assigned a specific document
+ID by providing a "_id" key in the hashref.
 
 =head2 is_compacting
 

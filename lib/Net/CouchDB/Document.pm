@@ -12,6 +12,7 @@ use constant _id     => 1;  # document ID
 use constant _rev    => 2;  # revision on which this document is based
 use constant _data   => 3;  # the original data from the server
 use constant _public => 4;  # public copy of 'data'
+use constant _deleted => 5; # is this document deleted in the database?
 sub new {
     my ($class, $args) = @_;
 
@@ -21,17 +22,22 @@ sub new {
     $self->[_rev]    = $args->{rev} || $args->{data}{_rev};
     $self->[_data]   = $args->{data};
     $self->[_public] = undef;
+    $self->[_deleted] = 0;
     return $self;
 }
 
 sub db  { shift->[_db]  }
 sub id  { shift->[_id]  }
 sub rev { shift->[_rev] }
+sub is_deleted { shift->[_deleted] }
 
 sub delete {
     my ($self) = @_;
     my $res = $self->call( 'DELETE', '?rev=' . $self->rev );
-    return if $res->code == 200;  # all is well
+    if ( $res->code == 200 ) {  # all is well
+        $self->[_deleted] = 1;
+        return;
+    }
     my $code = $res->code;
     die "Unknown status code '$code' while deleting the "
         . 'document ' . $self->id . " from the CouchDB instance at "
@@ -44,6 +50,7 @@ sub call {
     return $self->db->call( $method, $partial_uri, $content );
 }
 
+# this method lets us pretend that we're really a hashref
 sub _public_data {
     my ($self) = @_;
 
@@ -64,6 +71,18 @@ sub _public_data {
 
     # return the copy so that users can modify it at will
     return $self->[_public];
+}
+
+# after we've been updated or deleted, someone calls this to let
+# us know about our new standing in the database
+sub _you_are_now {
+    my ( $self, $args ) = @_;
+    my $rev = $args->{rev} or die "I am now what? Give me a rev dangit!\n";
+    $self->[_rev]     = $rev;
+    $self->[_deleted] = $args->{deleted};
+    $self->[_data]    = undef;  # our old data is no good
+    $self->[_public]  = undef;  # same with our public data
+    return;
 }
 
 1;
@@ -118,6 +137,11 @@ error while deleting.
 
 Returns the document ID for this document.  This is the unique identifier for
 this document within the database.
+
+=head2 is_deleted
+
+Returns a true value if this document has been deleted from the database.
+Otherwise, it returns false.
 
 =head2 rev
 
