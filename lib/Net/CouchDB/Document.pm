@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 use Storable qw( dclone );
-use overload '%{}' => '_public_data', falback => 1;
+use overload '%{}' => '_public_data', fallback => 1;
 
 # a Document object is a blessed arrayref to avoid hash
 # dereferencing problems
