@@ -2,6 +2,7 @@ package Net::CouchDB::DB;
 use strict;
 use warnings;
 
+use JSON;
 use URI;
 use Net::CouchDB::Request;
 use Net::CouchDB::Document;
@@ -26,9 +27,6 @@ sub new {
         return $self;  # errors would have caused an exception
     }
 
-    # TODO $self->call('GET', '') to verify that the DB exists
-    # TODO the result of that query can be used for a new ->about
-    # TODO which returns details about the database
     return $self;
 }
 
@@ -109,7 +107,7 @@ sub bulk {
             push @docs, {
                 _id => $doc->id,
                 _rev => $doc->rev,
-                _deleted => JSON::XS::true,
+                _deleted => JSON::true,
             };
             $input_doc_ids{ $doc->id } = [ 'delete', $doc ];
         }
@@ -189,12 +187,6 @@ sub all_documents {
     }
 
     return wantarray ? @documents : \@documents;
-}
-
-sub call {
-    my ( $self, $method, $partial_uri, $content ) = @_;
-    $partial_uri = $self->name . $partial_uri;
-    return $self->couch->call( $method, $partial_uri, $content );
 }
 
 sub couch {
@@ -350,11 +342,6 @@ Returns a L<URI> object representing the URI for this database.
 
 These methods are primarily intended for internal use but documented here
 for completeness.
-
-=head2 call($method, $relative_uri [,$content] )
-
-Identical to L<Net::CouchDB/call> but C<$relative_uri> is relative
-to the base URI of the current database.
 
 =head2 couch
 

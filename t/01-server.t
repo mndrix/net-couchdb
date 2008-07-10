@@ -41,5 +41,5 @@ $db->delete;
     my $couch = eval { Net::CouchDB->new('http://localhost:99999') };
     my $exception = $@;
     is( $couch, undef, 'no such server' );
-    like( $exception, qr/Unable to connect to/, '... error message' );
+    like( $exception, qr/500.*server metadata/, '... error message' );
 }

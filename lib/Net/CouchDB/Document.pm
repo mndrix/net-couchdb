@@ -39,12 +39,6 @@ sub delete {
     return;
 }
 
-sub call {
-    my ( $self, $method, $partial_uri, $content ) = @_;
-    $partial_uri = '/' . $self->id . $partial_uri;
-    return $self->db->call( $method, $partial_uri, $content );
-}
-
 sub ua { shift->db->ua }  # use the db's UserAgent
 
 sub uri {
@@ -158,11 +152,6 @@ Returns a L<URI> object representing the URI for this document.
 
 These methods are primarily intended for internal use but documented here
 for completeness.
-
-=head2 call( $method, $relative_uri [,$content] )
-
-Just like L<Net::CouchDB/call> but C<$relative_uri> is taken relative to
-the current document's URI.
 
 =head2 ua
 

@@ -15,14 +15,16 @@ our $JSON;
 sub new {
     my ($class, $uri) = @_;
     my $ua   = LWP::UserAgent->new;
-    my $res = $ua->get($uri);
-    die "Unable to connect to the CouchDB at $uri\n" if not $res->is_success;
-    my $about = $class->json->decode( $res->content );
-    return bless {
+    my $self = bless {
         base_uri => $uri,
-        about    => $about,
         ua       => $ua,
     }, $class;
+    my $res = $self->request( 'GET', $uri, {
+        description => 'get server metadata',
+        200         => 'ok',
+    });
+    $self->{about} = $res->content;
+    return $self;
 }
 
 sub about {
@@ -67,16 +69,6 @@ sub all_dbs {
 }
 
 # private-ish methods
-
-sub call {
-    my ( $self, $method, $partial_uri, $content ) = @_;
-    warn "call() is DEPRECATED\n";
-    die "Invalid content given to call()"
-      if defined($content) && ref($content) ne 'HASH';
-    my $req = HTTP::Request->new( $method, $self->uri . '/' . $partial_uri );
-    $req->content( $self->json->encode($content) ) if defined $content;
-    return $self->ua->request($req);
-}
 
 sub json {
     my ($self) = @_;
@@ -165,17 +157,6 @@ Returns the version number of this server's CouchDB software.
 
 These methods are primarily intended for internal use.  They're documented
 here for completeness.
-
-=head2 call($method, $relative_uri [,$content] )
-
-This method is B<deprecated>.  Use L</request> instead.
-
-Executes an API call against the CouchDB server.  The C<$method> is an
-HTTP verb and C<$relative_uri> is a URI relative to the server's base URI.
-C<$content> is an optional hashref which is serialized into JSON and provided
-as the body of the API call.
-
-Returns an L<HTTP::Response> object.
 
 =head2 json
 
