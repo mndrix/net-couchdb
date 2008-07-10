@@ -204,20 +204,18 @@ sub document {
 
 sub all_documents {
     my ($self) = @_;
-    my $res = $self->call( 'GET', '/_all_docs' );
-    my $code = $res->code;
-    die "Unknown status code '$code' while trying to retrieve all documents "
-      . " from the CouchDB instance at " . $self->couch->uri
-      if $code != 200;
+    my $res = $self->request('GET', '_all_docs', {
+        description => 'fetch all documents',
+        200         => 'ok',
+    });
 
     # all is well
-    my $data = $self->couch->json->decode( $res->content );
     my @documents;
-    for my $document ( @{ $data->{rows} } ) {
+    for my $row ( @{ $res->content->{rows} } ) {
         push @documents, Net::CouchDB::Document->new({
             db  => $self,
-            id  => $document->{id},
-            rev => $document->{value}{rev},
+            id  => $row->{id},
+            rev => $row->{value}{rev},
         });
     }
 
