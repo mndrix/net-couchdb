@@ -83,40 +83,11 @@ sub compact {
 }
 
 sub insert {
-    my $self = shift;
-    if    ( @_ == 0 ) { die "Too few arguments for insert()\n" }
-    elsif ( @_ == 1 ) { $self->_insert_single(@_) }
-    else              { $self->_insert_bulk(@_)   }
-}
-
-# is there any reason not to implement this in terms of _insert_bulk?
-# the HTTP request from this method is cleaner, but is that important
-# enough to maintain extra code?
-sub _insert_single {
-    my ($self, $data) = @_;
-    die "insert() called without a hashref argument" if ref($data) ne 'HASH';
-    my $id = $data->{_id};
-    my @args = defined $id ? ('PUT', $id) : ('POST');
-    my $res = $self->request(@args, {
-        description => 'create a document',
-        content     => $data,
-        201         => 'ok',
-    });
-
-    # it worked, so build the object
-    my $body = $res->content;
-    $id = $body->{id};
-    my $rev = $body->{rev};
-    return Net::CouchDB::Document->new({
-        db  => $self,
-        id  => $id,
-        rev => $rev,
-    });
-}
-
-sub _insert_bulk {
     my ($self, @documents) = @_;
-    return $self->bulk({ insert => \@documents });
+    die "insert() called without any documents to insert" if @documents < 1;
+    my $inserted = $self->bulk({ insert => \@documents });
+    return $inserted->[0] if @documents == 1;
+    return wantarray ? @$inserted : $inserted;
 }
 
 sub bulk {
@@ -355,9 +326,14 @@ Accepts the same arguments as L</about>.
 =head2 insert
 
 Given a list of hashrefs, creates a new document in the database for each one.
-On success, returns a list of L<Net::CouchDB::Document> objects.  On failure,
-throws an exception.  Inserted documents may be assigned a specific document
-ID by providing a "_id" key in the hashref.
+On success, returns a list (or arrayref, depending on context) of
+L<Net::CouchDB::Document> objects.  If a single hashref is given, a single
+document is returned (not contexnt sensitive).  On failure, it throws an
+exception.  Inserted documents may be assigned a specific document ID by
+providing a "_id" key in the hashref.
+
+Because this method is implemented in terms of L</bulk>, if a single document
+is invalid, none of the documents are inserted.
 
 =head2 is_compacting
 
