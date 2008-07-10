@@ -22,7 +22,15 @@ sub request {
         $req->content( ref $body ? Net::CouchDB->json->encode($body) : $body );
     }
 
+    if ($ENV{DEBUG}) {
+        warn "---- Request ----\n";
+        warn $req->as_string;
+    }
     my $res = Net::CouchDB::Response->new( $self->ua->request($req) );
+    if ($ENV{DEBUG}) {
+        warn "---- Response ----\n";
+        warn $res->res->as_string;
+    }
     my $code = $res->code;
     my $message = $args->{$code};
     if ($message) {
@@ -129,6 +137,13 @@ directly.
 
 A description of what this request is trying to accomplish.  If an exception
 is thrown, this description is used as part of the exception message.
+
+=head1 CONFIGURATION AND ENVIRONMENT
+
+=head2 DEBUG
+
+If the DEBUG environment variable is set to a true value, the HTTP requests
+and responses will be shown on STDERR.
 
 =head1 BUGS AND LIMITATIONS
 
