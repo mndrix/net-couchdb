@@ -125,35 +125,33 @@ sub bulk {
             $input_doc_ids{ $doc->id } = [ 'update', $doc ];
         }
     }
-    my $res = $self->call( 'POST', '/_bulk_docs', { docs => \@docs } );
-    if ( $res->code == 201 ) {
-        my $body = $self->couch->json->decode( $res->content );
-#       use Data::Dumper; warn Dumper($body);
-        my @inserted_docs;
-        NEWREV:
-        for my $new ( @{ $body->{new_revs} } ) {
-            my ( $id, $rev ) = @{$new}{ 'id', 'rev' };
-            if ( my $request = $input_doc_ids{$id} ) {  # update or delete
-                my ($operation, $doc) = @$request;
-                $doc->_you_are_now({
-                    rev     => $rev,
-                    deleted => $operation eq 'delete',
-                });
-                next NEWREV;
-            }
+    my $res = $self->request( 'POST', '_bulk_docs', {
+        description => 'operate on many documents',
+        content     => { docs => \@docs },
+        201         => 'ok',
+    });
 
-            # it must have been an insert
-            push @inserted_docs, Net::CouchDB::Document->new({
-                db  => $self,
-                id  => $id,
-                rev => $rev,
+    my @inserted_docs;
+    NEWREV:
+    for my $new ( @{ $res->content->{new_revs} } ) {
+        my ( $id, $rev ) = @{$new}{ 'id', 'rev' };
+        if ( my $request = $input_doc_ids{$id} ) {  # update or delete
+            my ($operation, $doc) = @$request;
+            $doc->_you_are_now({
+                rev     => $rev,
+                deleted => $operation eq 'delete',
             });
+            next NEWREV;
         }
-        return wantarray ? @inserted_docs : \@inserted_docs;
+
+        # it must have been an insert
+        push @inserted_docs, Net::CouchDB::Document->new({
+            db  => $self,
+            id  => $id,
+            rev => $rev,
+        });
     }
-    my $code = $res->code;
-    die "Unknown status code '$code' while trying to bulk change documents "
-      . " from the CouchDB instance at " . $self->couch->uri;
+    return wantarray ? @inserted_docs : \@inserted_docs;
 }
 
 sub document {

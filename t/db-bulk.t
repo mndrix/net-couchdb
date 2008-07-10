@@ -43,7 +43,7 @@ isnt $bar->rev, $bar_original_rev, 'bar has a new revision';
         delete => [ $bar ],
     });
 };
-like $@, qr/412.*trying to bulk change/, 'conflict detected';
+like $@, qr/412.*trying to operate on many/, 'conflict detected';
 cmp_ok scalar @docs, '==', 0, 'no documents returned';
 is $couch->document('drei')->{fail}, undef, 'document not inserted';
 ok !$bar->is_deleted, 'bar was not deleted';
