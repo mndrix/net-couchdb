@@ -308,9 +308,14 @@ Returns a single L<Net::CouchDB::Document> object representing the
 document whose ID is C<$id>.  If the document does not exist, returns
 C<undef>.
 
+If C<$id> identifiers a design document (that is, C<$id> starts with
+"_design/"), the resulting object will be a L<Net::CouchDB::DesignDocument>,
+which is a subclass of L<Net::CouchDB::Document>.
+
 =head2 document_count
 
 Returns the number of non-deleted documents present in the database.
+This includes design documents as well.
 Accepts the same arguments as L</about>.
 
 =head2 insert
