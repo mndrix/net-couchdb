@@ -33,15 +33,8 @@ sub is_deleted { shift->[_deleted] }
 
 sub delete {
     my ($self) = @_;
-    my $res = $self->call( 'DELETE', '?rev=' . $self->rev );
-    if ( $res->code == 200 ) {  # all is well
-        $self->[_deleted] = 1;
-        return;
-    }
-    my $code = $res->code;
-    die "Unknown status code '$code' while deleting the "
-        . 'document ' . $self->id . " from the CouchDB instance at "
-        . $self->db->couch->uri;
+    my @deleted = $self->db->bulk({ delete => [$self] });
+    return;
 }
 
 sub call {
