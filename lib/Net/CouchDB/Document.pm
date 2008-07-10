@@ -2,7 +2,9 @@ package Net::CouchDB::Document;
 use strict;
 use warnings;
 
+use Net::CouchDB::Request;
 use Storable qw( dclone );
+use URI;
 use overload '%{}' => '_public_data', fallback => 1;
 
 # a Document object is a blessed arrayref to avoid hash
@@ -43,19 +45,24 @@ sub call {
     return $self->db->call( $method, $partial_uri, $content );
 }
 
+sub ua { shift->db->ua }  # use the db's UserAgent
+
+sub uri {
+    my ($self) = @_;
+    return URI->new_abs( $self->id , $self->db->uri );
+}
+
 # this method lets us pretend that we're really a hashref
 sub _public_data {
     my ($self) = @_;
 
     if ( not defined $self->[_public] ) {
         if ( not defined $self->[_data] ) {
-            my $res = $self->call( 'GET' => '' );
-            my $code = $res->code;
-            die "Unknown status code '$code' while trying to retrieve the "
-              . 'document ' . $self->id . " from the CouchDB instance at "
-              . $self->db->couch->uri
-              if $code != 200;
-            $self->[_data] = $self->db->couch->json->decode( $res->content );
+            my $res = $self->request( 'GET', {
+                description => 'get a document',
+                200         => 'ok',
+            });
+            $self->[_data] = $res->content;
         }
         $self->[_public] = dclone $self->[_data];
         delete $self->[_public]->{_id};
@@ -143,6 +150,10 @@ the document has been modified since it was retrieved from the database.  In
 such a case, the data in the document may not represent what is currently
 stored in the database.
 
+=head2 uri
+
+Returns a L<URI> object representing the URI for this document.
+
 =head1 INTERNAL METHODS
 
 These methods are primarily intended for internal use but documented here
@@ -152,6 +163,10 @@ for completeness.
 
 Just like L<Net::CouchDB/call> but C<$relative_uri> is taken relative to
 the current document's URI.
+
+=head2 ua
+
+Returns the L<LWP::UserAgent> object used for making HTTP requests.
 
 =head1 AUTHOR
 
