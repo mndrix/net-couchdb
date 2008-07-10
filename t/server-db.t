@@ -16,7 +16,7 @@ my $couch = Net::CouchDB->new( $ENV{NET_COUCHDB_URI} );
 # try and fetch a database with a given name
 {
     my $other_db = $couch->db( $db->name );
-    isa_ok $other_db, 'Net::CouchDB::DB', 'got the database';
+    isa_ok $other_db, 'Net::CouchDB::DB', 'the database';
 }
 
 # try to fetch a database that doesn't exist
@@ -24,5 +24,5 @@ my $couch = Net::CouchDB->new( $ENV{NET_COUCHDB_URI} );
     my $other_db = $couch->db('98776');
     isa_ok $other_db, 'Net::CouchDB::DB', 'getting a database is lazy';
     eval { $other_db->about };
-    like $@, qr/encountered a problem/, '... but it does not exist';
+    like $@, qr/illegal_database_name/, '... but it does not exist';
 }
