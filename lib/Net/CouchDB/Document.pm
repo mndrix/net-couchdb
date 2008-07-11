@@ -46,6 +46,12 @@ sub uri {
     return URI->new_abs( $self->id , $self->db->uri );
 }
 
+sub update {
+    my ($self) = @_;
+    $self->db->bulk({ update => [ $self ] });
+    return;
+}
+
 # this method lets us pretend that we're really a hashref
 sub _public_data {
     my ($self) = @_;
@@ -102,6 +108,8 @@ Net::CouchDB::Document - a single CouchDB document
     }
 
     # $document is not really a hash, but it acts like one
+    $document->{actor} = 'James Dean';
+    $document->update;
 
 =head1 DESCRIPTION
 
@@ -143,6 +151,13 @@ Returns the revision name on which this document is based.  It's possible that
 the document has been modified since it was retrieved from the database.  In
 such a case, the data in the document may not represent what is currently
 stored in the database.
+
+=head2 update
+
+Stores any changes to the document into the database.  If the changes
+cause a conflict, an exception is thrown.  One may treat a Document
+object like a hashref and make changes to it however those changes are not
+stored in the database until C<update> is called.
 
 =head2 uri
 
