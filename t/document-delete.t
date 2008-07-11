@@ -25,9 +25,6 @@ ok $document->is_deleted, 'deleted document marked as deleted';
 $d = $couch->document($id);
 is $d, undef, 'missing after deletion';
 
-# try to delete again throws an exception
-TODO: {
-local $TODO = 'this might be a CouchDB bug';
+# double deletion is ok (per Damien)
 eval { $document->delete };
-like $@, qr/412.* deleting/, 'double delete exception';
-}
+is $@, '', 'double delete is ok';
