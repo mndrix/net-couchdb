@@ -93,13 +93,7 @@ __END__
 
 =head1 NAME
 
-Net::CouchDB - <One line description of module's purpose>
-
-
-=head1 VERSION
-
-This documentation refers to Net::CouchDB version 0.01
-
+Net::CouchDB - Perl interface to CouchDB
 
 =head1 SYNOPSIS
 
@@ -175,6 +169,12 @@ C<bug-net-couchdb at rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-CouchDB>.
 I will be notified, and then you'll automatically be notified of progress on
 your bug as I make changes.
+
+=head1 HELPING OUT
+
+The latest source code for Net-CouchDB is available with git from
+L<git://ndrix.com/Net-CouchDB>.  You may also browse the repository
+at L<http://git.ndrix.com/?p=Net-CouchDB;a=summary>.
 
 =head1 SUPPORT
 
