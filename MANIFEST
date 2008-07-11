@@ -4,6 +4,13 @@ Makefile.PL
 README
 lib/Net/CouchDB.pm
 lib/Net/CouchDB/DB.pm
+lib/Net/CouchDB/DesignDocument.pm
+lib/Net/CouchDB/Document.pm
+lib/Net/CouchDB/Request.pm
+lib/Net/CouchDB/Response.pm
+lib/Net/CouchDB/View.pm
+lib/Net/CouchDB/ViewResult.pm
+lib/Net/CouchDB/ViewResultRow.pm
 t/00-load.t
 t/01-server.t
 t/db-about.t
@@ -24,3 +31,4 @@ t/design-language.t
 t/design-views.t
 t/server-create_db.t
 t/server-db.t
+t/view-search.t

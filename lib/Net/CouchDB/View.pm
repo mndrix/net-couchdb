@@ -2,6 +2,8 @@ package Net::CouchDB::View;
 use warnings;
 use strict;
 
+use Net::CouchDB::ViewResult;
+
 sub new {
     my ($class, $args) = @_;
     return bless {
@@ -15,6 +17,24 @@ sub new {
 sub name   { shift->{name} }
 sub design { shift->{design} }
 
+sub search {
+    my $self = shift;
+    my $args = shift || {};
+    return Net::CouchDB::ViewResult->new({
+        view => $self,
+        %$args
+    });
+}
+
+sub uri {
+    my ($self) = @_;
+    my $view_name = $self->name;
+    my $design = $self->design;
+    my $design_name = $design->name;
+
+    my $base = $design->db->uri;
+    return URI->new_abs( "_view/$design_name/$view_name", $base );
+}
 
 1;
 
@@ -52,6 +72,16 @@ Returns the L<Net::CouchDB::DesignDocument> that contains this view.
 =head2 name
 
 Returns the name of this view.
+
+=head2 search
+
+See L<Net::CouchDB::ViewResult/search>.
+
+=head1 INTERNAL METHODS
+
+=head2 uri
+
+Returns a L<URI> object indicating the URI of the view.
 
 =head1 AUTHOR
 

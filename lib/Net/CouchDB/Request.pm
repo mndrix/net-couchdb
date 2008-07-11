@@ -14,6 +14,7 @@ sub request {
     my $args         = shift || {};
 
     my $uri = URI->new_abs( $relative_uri, $self->uri );
+    $uri->query_form( $args->{params} ) if $args->{params};
     my $req = HTTP::Request->new( $method, $uri );
     $req->header( Accept => 'application/json' );
 
@@ -137,6 +138,10 @@ directly.
 
 A description of what this request is trying to accomplish.  If an exception
 is thrown, this description is used as part of the exception message.
+
+=head3 params
+
+A hashref whose keys and values are added to the URI when making the request.
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
