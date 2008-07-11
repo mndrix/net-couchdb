@@ -19,5 +19,8 @@ t/document-update.t
 t/lib/Test/CouchDB.pm
 t/pod-coverage.t
 t/pod.t
+t/design-add_view.t
+t/design-language.t
+t/design-views.t
 t/server-create_db.t
 t/server-db.t

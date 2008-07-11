@@ -2,6 +2,19 @@ package Net::CouchDB::View;
 use warnings;
 use strict;
 
+sub new {
+    my ($class, $args) = @_;
+    return bless {
+        design     => $args->{design},
+        name       => $args->{name},
+        map        => $args->{definition}{map},
+        reduce     => $args->{definition}{reduce},
+    }, $class;
+}
+
+sub name   { shift->{name} }
+sub design { shift->{design} }
+
 
 1;
 
@@ -13,10 +26,32 @@ Net::CouchDB::View - an object representing a view
 
 =head1 SYNOPSIS
 
+    for my $view ( $design->views ) {
+        print "There's a view named " . $view->name . "\n";
+    }
 
 =head1 DESCRIPTION
 
 =head1 METHODS
+
+=head2 new
+
+L<Net::CouchDB::View> objects should usually be obtained by calling
+L<Net::CouchDB::DesignDocument/view>, L<Net::CouchDB::DesignDocument/views> or
+L<Net::CouchDB::DesignDocument/add_view>.  This method is documented for
+internal use.  Named arguments must include
+
+    design     - a DesignDocument object
+    name       - the name of this view
+    definition - a hash reference definining 
+
+=head2 design
+
+Returns the L<Net::CouchDB::DesignDocument> that contains this view.
+
+=head2 name
+
+Returns the name of this view.
 
 =head1 AUTHOR
 

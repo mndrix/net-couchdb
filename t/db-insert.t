@@ -5,7 +5,7 @@ use Test::More;
 use lib 't/lib';
 use Test::CouchDB;
 my $couch = setup_tests({ create_db => 1 });
-plan tests => 14;
+plan tests => 17;
 
 # insert and let CouchDB assign a document ID
 {
@@ -40,4 +40,14 @@ plan tests => 14;
     isa_ok $document, 'Net::CouchDB::Document', 'bulk insert: 2';
     is $document->id, '7511111', '… id';
     ok $document->rev, '… rev';
+}
+
+# inserting a design document
+{
+    my $design = $couch->insert({
+        _id => '_design/reports',
+    });
+    isa_ok $design, 'Net::CouchDB::DesignDocument', 'design document';
+    is $design->id, '_design/reports', '… id';
+    ok $design->rev, '… rev';
 }

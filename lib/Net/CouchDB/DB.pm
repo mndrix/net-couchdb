@@ -6,6 +6,7 @@ use JSON;
 use URI;
 use Net::CouchDB::Request;
 use Net::CouchDB::Document;
+use Net::CouchDB::DesignDocument;
 use Storable qw( dclone );
 
 sub new {
@@ -143,7 +144,10 @@ sub bulk {
         }
 
         # it must have been an insert
-        push @inserted_docs, Net::CouchDB::Document->new({
+        my $class = $id =~ m{^_design/}
+                  ? 'Net::CouchDB::DesignDocument'
+                  : 'Net::CouchDB::Document';
+        push @inserted_docs, $class->new({
             db  => $self,
             id  => $id,
             rev => $rev,
