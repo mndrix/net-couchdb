@@ -98,6 +98,8 @@ sub bulk {
         for my $hash (@$hashes) {
             die "Only plain hashes may be bulk inserted\n"
               if ref($hash) ne 'HASH';
+            # make numeric IDs into strings (as CouchDB requires)
+            $hash->{_id} = '' . $hash->{_id} if exists $hash->{_id};
             push @docs, $hash;
         }
     }
