@@ -158,6 +158,18 @@ sub bulk {
     return wantarray ? @inserted_docs : \@inserted_docs;
 }
 
+sub document_exists {
+    my ($self, $document_id) = @_;
+    die "document() called without a document ID" if not defined $document_id;
+    my $res = $self->request( 'HEAD', $document_id, {
+       description => 'fetch a document',
+       404         => 'ok',
+       200         => 'ok',
+    });
+
+    return $res->code != 404;
+}
+
 sub document {
     my ($self, $document_id) = @_;
     die "document() called without a document ID" if not defined $document_id;
@@ -317,6 +329,14 @@ C<undef>.
 If C<$id> identifiers a design document (that is, C<$id> starts with
 "_design/"), the resulting object will be a L<Net::CouchDB::DesignDocument>,
 which is a subclass of L<Net::CouchDB::Document>.
+
+=head2 document_exists($id)
+
+Returns true if the document exists.
+
+This method uses an HTTP C<HEAD> request to find out if the document exists,
+and doesn't retrieve the document data at all.  It is particularly useful for
+large documents.
 
 =head2 document_count
 
