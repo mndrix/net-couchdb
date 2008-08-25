@@ -20,6 +20,7 @@ t/db-compact.t
 t/db-delete.t
 t/db-document.t
 t/db-insert.t
+t/document-data.t
 t/document-delete.t
 t/document-overload.t
 t/document-update.t

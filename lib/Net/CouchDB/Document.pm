@@ -5,7 +5,7 @@ use warnings;
 use Net::CouchDB::Request;
 use Storable qw( dclone );
 use URI;
-use overload '%{}' => '_public_data', fallback => 1;
+use overload '%{}' => 'data', fallback => 1;
 
 # a Document object is a blessed arrayref to avoid hash
 # dereferencing problems
@@ -53,7 +53,7 @@ sub update {
 }
 
 # this method lets us pretend that we're really a hashref
-sub _public_data {
+sub data {
     my ($self) = @_;
 
     if ( not defined $self->[_public] ) {
@@ -124,6 +124,10 @@ from the database but which was once available.
 Generally speaking, users should not call this method directly.  Document
 objects should be created by calling appropriate methods on a
 L<Net::CouchDB::DB> object such as "insert".
+
+=head2 data
+
+Returns the document's contents.
 
 =head2 db
 
