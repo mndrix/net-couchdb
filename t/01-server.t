@@ -16,7 +16,7 @@ isa_ok( $couch, 'Net::CouchDB', 'server object' );
 # can we read the version number correctly?
 my $version = $couch->version;
 diag "CouchDB version $version";
-like $version, qr/^\d+[.]\d+[.]\d+a?-.*$/, 'version number';
+like $version, qr/^\d+[.]\d+[.]\d+/, 'version number';
 
 # can we get all the the server meta data
 my $about = $couch->about;
