@@ -222,6 +222,12 @@ sub uri {
     return URI->new_abs( $self->name . '/' , $self->couch->uri );
 }
 
+sub clear {
+    my $self = shift;
+    $self->delete;
+    $self->couch->create_db($self->name);
+}
+
 1;
 
 __END__
@@ -382,6 +388,10 @@ database resides.
 =head2 ua
 
 Returns the L<LWP::UserAgent> object used for making HTTP requests.
+
+=head2 clear
+
+A convenience method to delete and recreate the database.
 
 =head1 AUTHOR
 

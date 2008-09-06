@@ -6,7 +6,7 @@ use Net::CouchDB;
 use lib 't/lib';
 use Test::CouchDB;
 setup_tests();
-plan tests => 4;
+plan tests => 7;
 
 # This file contains tests for Net::CouchDB::DB::delete
 
@@ -28,3 +28,12 @@ is $found, undef, 'missing after deletion';
 # try to delete again throws an exception
 eval { $db->delete };
 like $@, qr/database .* does not exist/, 'double delete exception';
+
+# clear the database and make sure the documents are all gone
+$db = $couch->create_db($db_name);
+$db->insert({ a => 'document' });
+cmp_ok $db->document_count, '==', 1, 'the new document exists';
+$db->clear;
+($found) = grep { $_->name eq $db_name } $couch->all_dbs;
+isa_ok $found, 'Net::CouchDB::DB', 'clear recreates';
+cmp_ok $db->document_count, '==', 0, 'all documents are gone';
