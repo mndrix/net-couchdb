@@ -74,7 +74,7 @@ sub json {
     my ($self) = @_;
     our $JSON;
     return $JSON if $JSON;
-    return $JSON = JSON->new->allow_nonref;
+    return $JSON = JSON->new->allow_nonref->utf8;
 }
 
 sub ua {
