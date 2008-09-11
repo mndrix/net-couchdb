@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use Net::CouchDB::Request;
+use Net::CouchDB::Attachment;
 use Storable qw( dclone );
 use URI;
 use overload '%{}' => 'data', fallback => 1;
@@ -43,7 +44,7 @@ sub ua { shift->db->ua }  # use the db's UserAgent
 
 sub uri {
     my ($self) = @_;
-    return URI->new_abs( $self->id , $self->db->uri );
+    return URI->new_abs( $self->id . '/' , $self->db->uri );
 }
 
 sub update {
@@ -73,6 +74,34 @@ sub data {
     return $self->[_public];
 }
 
+# create an attachment for this document
+sub attach {
+    my ($self, $filename) = @_;
+    die "The attachment file $filename is not readable or does not exist\n"
+        if not -r $filename;
+    my $content_type = -T _ ? 'text/plain' : 'application/octet-stream';
+    my $content = do { local $/; open my $fh, '<', $filename; <$fh> };
+    my ($name) = $filename =~ m{ ( [^\\/]+ ) \z }xms;
+
+    # create the attachment
+    my $res = $self->request( 'PUT', $name, {
+        description => 'create an attachment',
+        params      => { rev => $self->rev },
+        headers     => { 'Content-Type' => $content_type },
+        content     => $content,
+        200         => 'ok',
+    });
+    $self->_you_are_now({  # update the revision number
+        rev           => $res->content->{rev},
+        preserve_data => 1,
+    });
+
+    return Net::CouchDB::Attachment->new({
+        document => $self,
+        name     => $name,
+    });
+}
+
 # after we've been updated or deleted, someone calls this to let
 # us know about our new standing in the database
 sub _you_are_now {
@@ -80,8 +109,10 @@ sub _you_are_now {
     my $rev = $args->{rev} or die "I am now what? Give me a rev dangit!\n";
     $self->[_rev]     = $rev;
     $self->[_deleted] = $args->{deleted};
-    $self->[_data]    = undef;  # our old data is no good
-    $self->[_public]  = undef;  # same with our public data
+    if ( not $args->{preserve_data} ) {
+        $self->[_data]    = undef;  # our old data is no good
+        $self->[_public]  = undef;  # same with our public data
+    }
     return;
 }
 
@@ -114,8 +145,8 @@ Net::CouchDB::Document - a single CouchDB document
 =head1 DESCRIPTION
 
 A Net::CouchDB::Document object represents a single document in the CouchDB
-database.  It represent a document which is no longer physically available
-from the database but which was once available.
+database.  It also represents a document which is no longer physically
+available from the database but which was once available.
 
 =head1 METHODS
 
@@ -124,6 +155,12 @@ from the database but which was once available.
 Generally speaking, users should not call this method directly.  Document
 objects should be created by calling appropriate methods on a
 L<Net::CouchDB::DB> object such as "insert".
+
+=head2 attach( $filename )
+
+Attach the contents of C<$filename> to the current document as an attachment.
+If the file looks like it's text, the content type is C<text/plain>;
+otherwise, the content type is C<application/octet-stream>.
 
 =head2 data
 

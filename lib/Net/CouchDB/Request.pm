@@ -18,6 +18,11 @@ sub request {
     my $req = HTTP::Request->new( $method, $uri );
     $req->header( Accept => 'application/json' );
 
+    # set the request headers, if specified
+    while ( my ($header, $value) = each %{ $args->{headers} || {} } ) {
+        $req->header( $header => $value );
+    }
+
     # set the request body if specified
     if ( my $body = $args->{content} ) {
         $req->content( ref $body ? Net::CouchDB->json->encode($body) : $body );
@@ -133,6 +138,11 @@ Of course, multiple status codes may be listed as 'ok'.
 Specifies the content of the HTTP request.  If this argument is a Perl
 reference, it will be serialized to JSON.  Otherwise, the content is used
 directly.
+
+=head3 headers
+
+Specifies a hashref of HTTP headers that should be added to the request.  The
+keys should be the header names.  They values should be the header values.
 
 =head3 description
 
