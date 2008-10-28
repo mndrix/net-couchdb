@@ -99,6 +99,19 @@ a given name.
 
 Returns a L<URI> object representing the URI for this attachment.
 
+=head2 content
+
+Fetches the attachment from the server and returns the content.
+
+=head2 content_type
+
+Returns the content type of the attachment. If it hasn't been fetched (by
+calling C<content>) a HEAD request will be done to get the content_type.
+
+=head2 length
+
+Returns the size of the attachment.
+
 =head1 INTERNAL METHODS
 
 These methods are primarily intended for internal use but documented here
