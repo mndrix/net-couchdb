@@ -18,6 +18,7 @@ sub setup_tests {
     return if not $args->{create_db};
     my $couch = Net::CouchDB->new( $ENV{NET_COUCHDB_URI} );
     my $db_name = sprintf "net-couchdb-$$-%d", int( rand 100_000 );
+    $db_name = $ENV{NET_COUCHDB_DB} if $ENV{DEBUG} && $ENV{NET_COUCHDB_DB};
     push our @dbs, my $db = $couch->create_db($db_name);
     END { if ( !$ENV{DEBUG} ) { $_->delete for @dbs } }
 
