@@ -4,6 +4,7 @@ use warnings;
 
 use JSON;
 use URI;
+use URI::Escape qw();
 use Net::CouchDB::Request;
 use Net::CouchDB::Document;
 use Net::CouchDB::DesignDocument;
@@ -164,7 +165,7 @@ sub bulk {
 sub document_exists {
     my ($self, $document_id) = @_;
     die "document() called without a document ID" if not defined $document_id;
-    my $res = $self->request( 'HEAD', $document_id, {
+    my $res = $self->request( 'HEAD', URI::Escape::uri_escape($document_id), {
        description => 'fetch a document',
        404         => 'ok',
        200         => 'ok',
@@ -176,7 +177,7 @@ sub document_exists {
 sub document {
     my ($self, $document_id) = @_;
     die "document() called without a document ID" if not defined $document_id;
-    my $res = $self->request( 'GET', $document_id, {
+    my $res = $self->request( 'GET', URI::Escape::uri_escape($document_id), {
        description => 'fetch a document',
        404         => 'ok',  # should this die instead?
        200         => 'ok',

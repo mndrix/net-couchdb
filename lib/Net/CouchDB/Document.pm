@@ -6,6 +6,7 @@ use Net::CouchDB::Request;
 use Net::CouchDB::Attachment;
 use Storable qw( dclone );
 use URI;
+use URI::Escape qw(); # don't polute the namespace
 use overload '%{}' => 'data', fallback => 1;
 
 # a Document object is a blessed arrayref to avoid hash
@@ -44,7 +45,7 @@ sub ua { shift->db->ua }  # use the db's UserAgent
 
 sub uri {
     my ($self) = @_;
-    return URI->new_abs( $self->id . '/' , $self->db->uri );
+    return URI->new_abs(URI::Escape::uri_escape($self->id) . '/' , $self->db->uri );
 }
 
 sub update {

@@ -5,13 +5,14 @@ use Test::More;
 use lib 't/lib';
 use Test::CouchDB;
 my $couch = setup_tests({ create_db => 1 });
-plan tests => 3;
+plan tests => 5;
 
 # create a new design document w/o any views
-my $design = $couch->insert({ _id => '_design/report' });
+ok(my $design = $couch->insert({ _id => '_design/report' }), "insert");
 
 # and add a view to it
-my $view = $design->add_view( 'first', {} );
+ok(my $view = $design->add_view( 'first', {} ), "add view");
+
 isa_ok $view, 'Net::CouchDB::View', 'first view';
 
 # can we also get the view from the design document?
