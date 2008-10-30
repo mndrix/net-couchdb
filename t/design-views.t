@@ -5,7 +5,7 @@ use Test::More;
 use lib 't/lib';
 use Test::CouchDB;
 my $couch = setup_tests({ create_db => 1 });
-plan tests => 13;
+plan tests => 14;
 
 # create a new design document w/o any views
 {
@@ -14,6 +14,11 @@ plan tests => 13;
     is_deeply \@views, [], 'no views';
     eval { $design->view('foo') };
     like $@, qr/'empty' has no views/, 'exception for a single view';
+}
+
+{
+    my $design = $couch->document('_design/empty');
+    isa_ok( $design, 'Net::CouchDB::DesignDocument', 'a design document' );
 }
 
 # create a design document with a single view

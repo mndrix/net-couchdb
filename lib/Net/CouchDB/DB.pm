@@ -150,16 +150,20 @@ sub bulk {
         }
 
         # it must have been an insert
-        my $class = $id =~ m{^_design/}
-                  ? 'Net::CouchDB::DesignDocument'
-                  : 'Net::CouchDB::Document';
-        push @inserted_docs, $class->new({
+        push @inserted_docs, $self->_document_class($id)->new({
             db  => $self,
             id  => $id,
             rev => $rev,
         });
     }
     return wantarray ? @inserted_docs : \@inserted_docs;
+}
+
+sub _document_class {
+    my ( $self, $document_id ) = @_;
+    return $document_id =~ m{^_design/}
+      ? 'Net::CouchDB::DesignDocument'
+      : 'Net::CouchDB::Document';
 }
 
 sub document_exists {
@@ -185,7 +189,7 @@ sub document {
     return if $res->code == 404;    # there's no such document
 
     # all is well
-    return Net::CouchDB::Document->new({
+    return $self->_document_class($document_id)->new({
         db   => $self,
         data => $res->content,
     });
