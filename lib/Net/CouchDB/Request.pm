@@ -39,6 +39,8 @@ sub request {
     }
     my $code = $res->code;
     my $message = $args->{$code};
+    my $reason = eval { $res->content->{reason} } || 'unknown';
+    $message = $message->{$reason} if $message and ref($message) eq 'HASH';
     if ($message) {
         return $res if $message eq 'ok';
     }
@@ -49,7 +51,6 @@ sub request {
     # falling through to here means there was an error
     my $description = $args->{description} || 'do something';
     $message ||= "Unknown status code '$code' while trying to $description";
-    my $reason = eval { $res->content->{reason} } || 'unknown';
     die "$message. $method request to $uri: $reason\n";
 }
 

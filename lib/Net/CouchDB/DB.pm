@@ -24,6 +24,9 @@ sub new {
             description => "create a database named '$name'",
             201         => 'ok',
             409         => "A database named '$name' already exists",
+            500         => {
+                illegal_database_name => "Error creating database '$name'",
+            },
         });
         return $self;  # errors would have caused an exception
     }
