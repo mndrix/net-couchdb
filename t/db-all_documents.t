@@ -5,7 +5,7 @@ use Test::More;
 use lib 't/lib';
 use Test::CouchDB;
 my $couch = setup_tests({ create_db => 1 });
-plan tests => 7;
+plan tests => 8;
 
 # a new database has no documents
 {
@@ -33,3 +33,8 @@ is_deeply(
     [qw( apple bacon cheese dessert )],
     'the right documents',
 );
+
+@docs = $couch->all_documents({count => 2});
+is scalar @docs, 2, "limit to two docs";
+
+

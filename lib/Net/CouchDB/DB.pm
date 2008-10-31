@@ -196,10 +196,11 @@ sub document {
 }
 
 sub all_documents {
-    my ($self) = @_;
+    my ($self, $args) = @_;
     my $res = $self->request('GET', '_all_docs', {
         description => 'fetch all documents',
         200         => 'ok',
+        params      => ($args || {}),
     });
 
     # all is well
@@ -290,6 +291,10 @@ Otherwise, the information is fetched again from the server.
 Returns a list (or arrayref, depending on context) of
 L<Net::CouchDB::Document> objects representing all the documents in the
 database.
+
+L</all_documents> accepts an optional hashref of arguments which is passed
+directly to CouchDB.  This allows one to request the first N documents or to
+sort the documents in a particular order.
 
 =head2 bulk(\%args)
 
