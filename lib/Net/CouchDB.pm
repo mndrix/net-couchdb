@@ -14,7 +14,7 @@ our $JSON;
 
 sub new {
     my ($class, $uri) = @_;
-    my $ua   = LWP::UserAgent->new;
+    my $ua   = LWP::UserAgent->new(keep_alive => 10);
     my $self = bless {
         base_uri => $uri,
         ua       => $ua,
