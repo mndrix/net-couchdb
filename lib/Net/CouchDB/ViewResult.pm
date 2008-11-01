@@ -12,15 +12,16 @@ sub new {
     my $args  = shift;
     my $json = Net::CouchDB->json;
 
+    my %params = %$args;
+
     # searches by key
-    my %params;
-    if ( my $key = $args->{key} ) {
+    if ( my $key = delete $params{key} ) {
         $key = $json->encode($key);
         $params{startkey} = $params{endkey} = $key;
     }
 
     my $self = bless {
-        view   => $args->{view},
+        view   => delete $params{view},
         params => \%params,
     }, $class;
     return $self;
@@ -78,6 +79,9 @@ Net::CouchDB::ViewResult - the result of searching a view
     my $rs = $view->search({ key => 'foo' });
     printf "There are %d rows\n", $rs->count;
 
+    my $rs = $view->search({ count => 20, startkey_docid => 'abc' });
+    my $doc = $rs->first;
+
 =head1 DESCRIPTION
 
 A L<Net::CouchDB::ViewResult> object represents the results of searching a
@@ -124,6 +128,10 @@ she may then refine those same results further
 In your application, it's often convenient to return ViewResult objects and
 let other parts of the application build up the results that they want.
 Acceptable arguments to L</search> are described below.
+
+The search arguments can be any arguments accepted by CouchDB's view API.  For
+a complete list, see L<http://wiki.apache.org/couchdb/HttpViewApi>.  Arguments
+of particular interest are document below.
 
 =head3 key
 

@@ -5,7 +5,7 @@ use Test::More;
 use lib 't/lib';
 use Test::CouchDB;
 my $couch = setup_tests({ create_db => 1 });
-plan tests => 14;
+plan tests => 16;
 
 # create a new design document w/o any views
 {
@@ -52,8 +52,8 @@ plan tests => 14;
     my $design = $couch->insert({
         _id => '_design/medium',
         views => {
-            first  => {},
-            second => {},
+            first  => {map => "function(doc) {}"},
+            second => {map => "function(doc) { emit(doc.food, {}) }"},
         },
     });
     my @views = $design->views;
@@ -64,4 +64,15 @@ plan tests => 14;
         [ sort map { $_->name } @views ],
         [ 'first', 'second' ],
         '… correct names';
+
+    $couch->insert( { food => 'apple' }, { food => 'bacon' },
+                    { food => 'cheese' }, { food => 'dessert' }
+                  );
+
+    my $count = $views[1]->search->count;
+    is $count, 4, "four docs";
+
+    $count = $views[1]->search({ count => 2 })->count;
+    is $count, 2, "two docs with count parameter";
+
 }
