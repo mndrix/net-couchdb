@@ -12,9 +12,14 @@ use Net::CouchDB::Response;
 our $VERSION = '0.01';
 our $JSON;
 
+my $agent = sprintf( "Net::CouchDB/%s (perl %vd)", $VERSION, $^V );
+
 sub new {
     my ($class, $uri) = @_;
-    my $ua   = LWP::UserAgent->new(keep_alive => 10);
+    my $ua = LWP::UserAgent->new(
+        keep_alive => 10,
+        agent      => $agent
+    );
     my $self = bless {
         base_uri => $uri,
         ua       => $ua,
