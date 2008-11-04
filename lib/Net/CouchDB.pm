@@ -24,7 +24,7 @@ sub new {
         base_uri => $uri,
         ua       => $ua,
     }, $class;
-    my $res = $self->request( 'GET', $uri, {
+    my $res = $self->request( 'GET', {
         description => 'get server metadata',
         200         => 'ok',
     });
