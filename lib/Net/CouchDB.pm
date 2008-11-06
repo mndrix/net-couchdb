@@ -3,7 +3,7 @@ package Net::CouchDB;
 use warnings;
 use strict;
 use HTTP::Request;
-use JSON;
+use JSON 2.0;
 use LWP::UserAgent;
 use Net::CouchDB::DB;
 use Net::CouchDB::Request;

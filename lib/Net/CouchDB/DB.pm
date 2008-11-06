@@ -2,7 +2,7 @@ package Net::CouchDB::DB;
 use strict;
 use warnings;
 
-use JSON;
+use JSON 2.0;
 use URI;
 use URI::Escape qw();
 use Net::CouchDB::Request;
