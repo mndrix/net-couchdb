@@ -1,5 +1,7 @@
 * implement $document->attachment('name') for fetching attachments
 
+* auto-guess attachment content type for scalar content
+
 * prepare the distribution for the first release to CPAN,
   reread the docs
 

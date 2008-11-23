@@ -79,12 +79,6 @@ Generally speaking, users should not call this method directly.  Document
 objects should be created by calling appropriate methods on a
 L<Net::CouchDB::Document> object such as "attach".
 
-=head2 attach( $filename )
-
-Attach the contents of C<$filename> to the current document as an attachment.
-If the file looks like it's text, the content type is C<text/plain>;
-otherwise, the content type is C<application/octet-stream>.
-
 =head2 document
 
 Returns a L<Net::CouchDB::Document> object indicating the document with which

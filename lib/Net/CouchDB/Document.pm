@@ -77,12 +77,30 @@ sub data {
 
 # create an attachment for this document
 sub attach {
-    my ($self, $filename) = @_;
-    die "The attachment file $filename is not readable or does not exist\n"
-        if not -r $filename;
-    my $content_type = -T _ ? 'text/plain' : 'application/octet-stream';
-    my $content = do { local $/; open my $fh, '<', $filename; <$fh> };
-    my ($name) = $filename =~ m{ ( [^\\/]+ ) \z }xms;
+    my $self = shift;
+    my $args = shift || {};
+    $args = { filename => $args } if ref($args) ne 'HASH';
+
+    my $fh;
+    my $name         = $args->{name};
+    my $content_type = $args->{content_type};
+
+    if ( my $filename = $args->{filename} ) {
+        die "The attachment file $filename is not readable or does not exist\n"
+          if not -r $filename;
+        open $fh, '<', $filename or die "Could not open '$filename': $!";
+        if ( not $name ) {  # name the attachment after the file
+            ($name) = $filename =~ m{ ( [^\\/]+ ) \z }xms;
+        }
+    }
+
+    my $content;
+    if ( $fh = $fh || $args->{fh} ) {
+        $content_type ||= -T $fh ? 'text/plain' : 'application/octet-stream';
+        $content = do { local $/; <$fh> };
+    }
+
+    $content ||= $args->{content};
 
     # create the attachment
     my $res = $self->request( 'PUT', $name, {
@@ -157,11 +175,38 @@ Generally speaking, users should not call this method directly.  Document
 objects should be created by calling appropriate methods on a
 L<Net::CouchDB::DB> object such as "insert".
 
-=head2 attach( $filename )
+=head2 attach
 
+If a single scalar argument is given, it's interpreted as a C<$filename>.
 Attach the contents of C<$filename> to the current document as an attachment.
 If the file looks like it's text, the content type is C<text/plain>;
 otherwise, the content type is C<application/octet-stream>.
+
+If the argument is a hashref, the hashref gives named arguments which specify
+the attachment to be created.  Acceptable arguments are:
+
+=head3 content
+
+The actual content to use for the body of the attachment.
+
+=head3 content_type
+
+A MIME type for specifying the type of the attachment's content.  CouchDB uses
+this as the "Content-Type" HTTP header when the attachment is requested
+directly.
+
+=head3 fh
+
+A filehandle which should be used for reading the content of the attachment.
+
+=head3 filename
+
+Create an attachment based on a given filename.  This is the same as calling
+L</attach> with a single, scalar argument.
+
+=head3 name
+
+The name of the attachment.
 
 =head2 data
 
