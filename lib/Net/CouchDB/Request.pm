@@ -26,6 +26,7 @@ sub request {
     # set the request body if specified
     if ( my $body = $args->{content} ) {
         $req->content( ref $body ? Net::CouchDB->json->encode($body) : $body );
+        $req->header('Content-Length' => length $req->content);
     }
 
     if ($ENV{DEBUG}) {
