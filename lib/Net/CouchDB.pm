@@ -180,16 +180,19 @@ the CouchDB server.
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs or feature requests to
-C<bug-net-couchdb at rt.cpan.org>, or through the web interface at
+C<net-couchdb@googlegroups.com>, or through the RT web interface at
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-CouchDB>.
-I will be notified, and then you'll automatically be notified of progress on
-your bug as I make changes.
 
 =head1 HELPING OUT
 
 The latest source code for Net-CouchDB is available with git from
 L<git://ndrix.com/Net-CouchDB>.  You may also browse the repository
 at L<http://git.ndrix.com/?p=Net-CouchDB;a=summary>.
+
+The module's mailing list is hosted through Google Groups.  Send email to
+the list (non-member posting encouraged) at net-couchdb@googlegroups.com.  You
+may also subscribe to the mailing list by visiting Google Groups
+(L<http://groups.google.com>).
 
 =head1 SUPPORT
 
