@@ -9,7 +9,7 @@ use Net::CouchDB::DB;
 use Net::CouchDB::Request;
 use Net::CouchDB::Response;
 
-our $VERSION = '0.01';
+our $VERSION = '0.10';
 our $JSON;
 
 my $agent = sprintf( "Net::CouchDB/%s (perl %vd)", $VERSION, $^V );
