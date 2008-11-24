@@ -96,24 +96,34 @@ sub uri {
 
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 Net::CouchDB - Perl interface to CouchDB
 
 =head1 SYNOPSIS
 
+    # connect to the server and create a database
     use Net::CouchDB;
-    # Brief but working code example(s) here showing the most common usage(s)
+    my $couch = Net::CouchDB->new('http://127.0.0.1:5984');
+    my $db = $couch->create_db('my_database');
+    
+    # or access an existing database
+    $db = $couch->db('existing_database');
+    
+    # insert some documents into the database
+    my $foo = $db->insert({ foo => 'something' });
+    my $bar = $db->insert({ bar => 'another' });
+    
+    # modify your documents
+    $foo->{foo} = 'changed';
+    $foo->{'another key'} = ['one', 'two', 'three'];
+    $foo->update;
 
-    # This section will be as far as many users bother reading
-    # so make it as educational and exemplary as possible.
- 
- 
 =head1 DESCRIPTION
 
-A full description of the module and its features.
-May include numerous subsections (i.e. =head2, =head3, etc.)
-
+A Perl interface to Apache CouchDB (L<http://incubator.apache.org/couchdb/>).
 
 =head1 METHODS
 
