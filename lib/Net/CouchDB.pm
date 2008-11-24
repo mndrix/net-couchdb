@@ -211,6 +211,11 @@ L<http://search.cpan.org/dist/Net-CouchDB>
 
 =head1 ACKNOWLEDGEMENTS
 
+Also includes code contributions from:
+
+ * Ask Bjørn Hansen
+ * Yuval Kogman
+
 =head1 AUTHOR
 
 Michael Hendricks  <michael@ndrix.org>
