@@ -29,3 +29,12 @@ WriteMakefile(
     %params,
 );
 
+sub MY::postamble {
+  qq[
+testcover :
+\t cover -delete && \\
+   HARNESS_PERL_SWITCHES=-MDevel::Cover \$(MAKE) test && \\
+   cover
+]
+
+}
