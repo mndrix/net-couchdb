@@ -24,6 +24,11 @@ sub new {
         view   => delete $params{view},
         params => \%params,
     }, $class;
+
+    # Note that this doesn't actually fetch the result; it only 
+    # sets up the container for the result.
+    # Fetching the data is done on demand ... (for better or worse)
+
     return $self;
 }
 
@@ -108,6 +113,11 @@ or equal to the number returned by L</total_rows>.
 Returns a L<Net::CouchDB::ViewResultRow> object representing the first
 row in the result.  If there are no rows in the result, it returns
 C<undef>.
+
+=head2 next
+
+Returns the next L<Net::CouchDB::ViewResultRow> until there are no
+more rows where it returns C<undef>.
 
 =head2 search
 
