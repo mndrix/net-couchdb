@@ -23,6 +23,7 @@ sub new {
     my $self = bless {
         view   => delete $params{view},
         params => \%params,
+        _pointer => 0,
     }, $class;
 
     # Note that this doesn't actually fetch the result; it only 
@@ -49,9 +50,25 @@ sub total_rows {
 sub first {
     my ($self) = @_;
     return if $self->count < 1;
+    $self->{_pointer} = 0;
     return Net::CouchDB::ViewResultRow->new({
         result => $self,
         row    => $self->response->content->{rows}[0],
+    });
+}
+
+sub next {
+    my ($self) = @_;
+
+    # if the iterator has returned all results, reset it (similar to each())
+    if ( $self->{_pointer} >= $self->count ) {
+        $self->{_pointer} = 0;
+        return;
+    }
+
+    return Net::CouchDB::ViewResultRow->new({
+        result => $self,
+        row    => $self->response->content->{rows}[ $self->{_pointer}++ ],
     });
 }
 
@@ -63,6 +80,7 @@ sub response {
         200         => 'ok',
         params      => $self->params,
     });
+    $self->{_pointer} = 0;
     return $self->{response} = $res;
 }
 

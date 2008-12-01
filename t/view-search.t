@@ -5,7 +5,7 @@ use Test::More;
 use lib 't/lib';
 use Test::CouchDB;
 my $couch = setup_tests({ create_db => 1 });
-plan tests => 7;
+plan tests => 9;
 
 # put some documents into the database
 $couch->insert(
@@ -30,6 +30,14 @@ my $view = $design->add_view('numbers', {
     },
 });
 
+my $view_letters = $design->add_view('letters', {
+    map => q{
+        function (doc) {
+            emit(doc.letter, null);
+        }
+    },
+});
+
 # search for a single key
 my $rs = $view->search({ key => 'one' });
 isa_ok $rs, 'Net::CouchDB::ViewResult', 'search for "one"';
@@ -40,3 +48,13 @@ isa_ok $row, 'Net::CouchDB::ViewResultRow', '… first row';
 is $row->key, 'one', '… first row key';
 is $row->value, 'a', '… first row value';
 isa_ok $row->document, 'Net::CouchDB::Document';
+
+$rs = $view_letters->search({ count => 2, descending => JSON::true });
+
+my @rows;
+while (my $row = $rs->next) {
+    push @rows, $row->key;
+}
+
+cmp_ok $rs->count, '==', 2, 'got the right row count';
+is_deeply \@rows, [ 'f', 'e' ], 'and the right results';
