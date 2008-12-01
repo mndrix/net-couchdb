@@ -1,0 +1,67 @@
+* implement $document->attachment('name') for fetching attachments
+
+* prepare the distribution for the first release to CPAN,
+  reread the docs
+
+------------------------ Release to CPAN -----------------
+
+* implement $document->attachments() which returns a list of Attachment
+  objects representing the attachments for this document.  Be lazy about
+  fetching the attachment content since it could be quite large
+
+* don't let CouchDB create new document IDs.  Instead, create them ourselves
+  and give them to CouchDB.  See
+  mid:6E29F30A-62C7-40FE-BEA2-BE5EFB89DF4C@apache.org on the couchdb-dev
+  mailing list for details.
+
+* implement an API for accessing temporary views.  Views should be
+  represented as an object.  Performing operations on a view like
+  'start_key="bar"&end_key="foo"' should return a ViewResult object
+  which encapsulates a specific subset of all the view results.
+  As a proving ground for the API, reimplement all_documents() using
+  this new API.
+
+* support fetching many documents with a single HTTP request.  Was this
+  called _load_docs?  It should be a fairly new feature on trunk
+  Yuval says that he has @ids and wants to get @documents with one HTTP
+  request.
+
+* support $document->purge.  See Damien's post to the couchdb-dev
+  mailing list with details.  The docs should clearly indicate that
+  the method should not be used frequently and that delete() is
+  preferred.
+
+* implement an API for creating design documents and saved views
+
+* implement $couch->replicate() to replicate this database to a remote
+  server
+
+* implement $couch->restart() to restart the server remotely
+
+* $server->version should return a version object which can be compared
+  numerically but which stringifies to the raw version number that the server
+  returned.  This will be handy to support any changes to the CouchDB REST API.
+
+* implement $db->slice_documents which calls _all_docs with "start_key"
+  and "count" arguments and returns only a subset of the total documents
+  (this probably shouldn't be a method of its own.  it's probably a
+  method on a View object since they all implement this same interface)
+
+* perhaps implement $document->undelete which undeletes a document by
+  using the bulk() feature
+
+
+# The following methods involve revisions.  Since revisions are
+# meant to be an implementation detail and should not be relied upon
+# these methods might not be worth implementing
+# See http://wiki.apache.org/couchdb/DocumentRevisions
+
+* implement $document->latest which returns a document object representing
+  the most recent revision of the current document. this is just:
+  $self->db->document( $self->id ).
+
+* implement $db->document({ id => $id, rev => $rev })
+
+* implement $document->revisions which returns a list of document objects
+  representing all the revisions available for this particular document
+
