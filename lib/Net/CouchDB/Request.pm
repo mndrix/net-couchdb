@@ -1,6 +1,7 @@
 package Net::CouchDB::Request;
 use warnings;
 use strict;
+use Encode;
 
 BEGIN {
     our @ISA = 'Exporter';
@@ -25,7 +26,11 @@ sub request {
 
     # set the request body if specified
     if ( my $body = $args->{content} ) {
-        $req->content( ref $body ? Net::CouchDB->json->encode($body) : $body );
+	my $content = ref $body ? Net::CouchDB->json->encode($body) : $body;
+	if(utf8::is_utf8($content)) {
+	    $content = encode_utf8($content);
+	}
+        $req->content( $content );
         $req->header('Content-Length' => length $req->content);
     }
 
