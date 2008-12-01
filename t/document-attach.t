@@ -5,7 +5,7 @@ use Test::More;
 use lib 't/lib';
 use Test::CouchDB;
 my $couch = setup_tests({ create_db => 1 });
-plan tests => 8;
+plan tests => 14;
 
 # insert a document and attach some content to it
 {
@@ -21,6 +21,12 @@ plan tests => 8;
     is $attachment->content, $our_content, 'content';
     is $attachment->content_type, 'text/plain', 'content type';
 
+    # can we retrieve the attachment by name?
+    my $retrieved = $document->attachment('document-attach.t');
+    isa_ok $retrieved, 'Net::CouchDB::Attachment', 'retrieved by name';
+    is $retrieved->content, $our_content, 'content';
+    is $retrieved->content_type, 'text/plain', 'content type';
+
     # create an attachment with explicit content
     ok $attachment = $document->attach({
         name         => 'a2',
@@ -29,9 +35,13 @@ plan tests => 8;
     });
     is $attachment->content, $our_content, 'content 2';
     is $attachment->content_type, 'application/perl', 'content-type';
+
+    # can we retrieve this attachment by name?
+    $retrieved = $document->attachment('a2');
+    isa_ok $retrieved, 'Net::CouchDB::Attachment', 'retrieved again by name';
+    is $retrieved->content, $our_content, 'content';
+    is $retrieved->content_type, 'application/perl', 'content type';
 }
 
-
 # TODO create a new document with an attachment already present
-# TODO test $document->attachment('foo')
 # TODO test $document->attachments;

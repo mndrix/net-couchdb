@@ -121,6 +121,15 @@ sub attach {
     });
 }
 
+# retrieve an attachment from this document
+sub attachment {
+    my ($self, $name) = @_;
+    return Net::CouchDB::Attachment->new({
+        document => $self,
+        name     => $name,
+    });
+}
+
 # after we've been updated or deleted, someone calls this to let
 # us know about our new standing in the database
 sub _you_are_now {
@@ -207,6 +216,11 @@ L</attach> with a single, scalar argument.
 =head3 name
 
 The name of the attachment.
+
+=head2 attachment($name)
+
+Retrieves the attachment named C<$name> and returns a
+L<Net::CouchDB::Attachment> object.
 
 =head2 data
 
