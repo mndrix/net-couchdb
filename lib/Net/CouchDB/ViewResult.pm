@@ -50,7 +50,6 @@ sub total_rows {
 sub first {
     my ($self) = @_;
     return if $self->count < 1;
-    $self->{_pointer} = 0;
     return Net::CouchDB::ViewResultRow->new({
         result => $self,
         row    => $self->response->content->{rows}[0],
