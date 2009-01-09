@@ -185,9 +185,9 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-CouchDB>.
 
 =head1 HELPING OUT
 
-The latest source code for Net-CouchDB is available with git from
-L<git://ndrix.com/Net-CouchDB>.  You may also browse the repository
-at L<http://git.ndrix.com/?p=Net-CouchDB;a=summary>.
+The latest source code for Net-CouchDB is available with Git from
+L<git://github.com/mndrix/net-couchdb.git>.  You may also browse the
+repository at L<http://github.com/mndrix/net-couchdb>.
 
 The module's mailing list is hosted through Google Groups.  Send email to
 the list (non-member posting encouraged) at net-couchdb@googlegroups.com.  You

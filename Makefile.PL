@@ -7,9 +7,9 @@ my %params;
 if ( $ExtUtils::MakeMaker::VERSION ge '6.36' ) {
     $params{EXTRA_META} = <<'EOF';
 resources:
-    homepage: http://git.ndrix.com/?p=Net-CouchDB;a=summary
+    homepage: http://github.com/mndrix/net-couchdb
     license: http://www.opensource.org/licenses/mit-license.php
-    Repository: git://ndrix.com/Net-CouchDB
+    Repository: git://github.com/mndrix/net-couchdb.git
     MailingList: mailto:net-couchdb@googlegroups.com
 EOF
     }
