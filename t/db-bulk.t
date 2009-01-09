@@ -52,7 +52,8 @@ isa_ok $couch->document( $bar->id ), 'Net::CouchDB::Document','being safe';
 # we shouldn't be allowed to update and delete a document in one go
 # because CouchDB doesn't promise a consistent order for the inserts
 # and deletes
-{
+TODO: {
+    local $TODO = 'See https://issues.apache.org/jira/browse/COUCHDB-172';
     my $drei = $couch->document('drei');
     eval { $couch->bulk({ update => [ $drei ], delete => [ $drei ] }) };
     like $@, qr/'412'/, 'nonsense transactions are prevented';
