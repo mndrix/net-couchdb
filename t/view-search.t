@@ -49,7 +49,7 @@ is $row->key, 'one', '… first row key';
 is $row->value, 'a', '… first row value';
 isa_ok $row->document, 'Net::CouchDB::Document';
 
-$rs = $view_letters->search({ count => 2, descending => JSON::true });
+$rs = $view_letters->search({ limit => 2, descending => JSON::true });
 
 my @rows;
 while (my $row = $rs->next) {

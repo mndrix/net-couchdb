@@ -34,7 +34,7 @@ is_deeply(
     'the right documents',
 );
 
-@docs = $couch->all_documents({count => 2});
+@docs = $couch->all_documents({limit => 2});
 is scalar @docs, 2, "limit to two docs";
 
 

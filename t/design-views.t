@@ -72,7 +72,7 @@ plan tests => 16;
     my $count = $views[1]->search->count;
     is $count, 4, "four docs";
 
-    $count = $views[1]->search({ count => 2 })->count;
+    $count = $views[1]->search({ limit => 2 })->count;
     is $count, 2, "two docs with count parameter";
 
 }
