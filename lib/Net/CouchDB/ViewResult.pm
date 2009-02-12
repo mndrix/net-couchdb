@@ -101,7 +101,7 @@ Net::CouchDB::ViewResult - the result of searching a view
     my $rs = $view->search({ key => 'foo' });
     printf "There are %d rows\n", $rs->count;
 
-    my $rs = $view->search({ count => 20, startkey_docid => 'abc' });
+    my $rs = $view->search({ limit => 20, startkey_docid => 'abc' });
     my $doc = $rs->first;
 
 =head1 DESCRIPTION
