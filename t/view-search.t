@@ -5,7 +5,7 @@ use Test::More;
 use lib 't/lib';
 use Test::CouchDB;
 my $couch = setup_tests({ create_db => 1 });
-plan tests => 9;
+plan tests => 19;
 
 # put some documents into the database
 $couch->insert(
@@ -49,6 +49,17 @@ is $row->key, 'one', '… first row key';
 is $row->value, 'a', '… first row value';
 isa_ok $row->document, 'Net::CouchDB::Document';
 
+# search for a single key with key as is
+$rs = $view->search({ key => \'"one"' });
+isa_ok $rs, 'Net::CouchDB::ViewResult', 'search for "one"';
+cmp_ok $rs->count, '==', 1, '… correct count';
+$row = $rs->first;
+isa_ok $row, 'Net::CouchDB::ViewResultRow', '… first row';
+is $row->key, 'one', '… first row key';
+is $row->value, 'a', '… first row value';
+isa_ok $row->document, 'Net::CouchDB::Document';
+
+
 $rs = $view_letters->search({ limit => 2, descending => JSON::true });
 
 my @rows;
@@ -58,3 +69,26 @@ while (my $row = $rs->next) {
 
 cmp_ok $rs->count, '==', 2, 'got the right row count';
 is_deeply \@rows, [ 'f', 'e' ], 'and the right results';
+
+#search for range of keys
+
+$rs = $view_letters->search( { startkey=> 'b', endkey=> 'd' });
+
+@rows=();
+while (my $row = $rs->next) {
+    push @rows, $row->key;
+}
+
+cmp_ok $rs->count, '==', 3, 'got the right row count';
+is_deeply \@rows, [ 'b', 'c',  'd' ], 'and the right results';
+
+#keys as json strings;
+$rs = $view_letters->search( { startkey=> \'"b"', endkey=> \'"d"' });
+
+@rows=();
+while (my $row = $rs->next) {
+    push @rows, $row->key;
+}
+
+cmp_ok $rs->count, '==', 3, 'got the right row count';
+is_deeply \@rows, [ 'b', 'c',  'd' ], 'and the right results';

@@ -14,10 +14,15 @@ sub new {
 
     my %params = %$args;
 
-    # searches by key
-    if ( my $key = delete $params{key} ) {
-        $key = $json->encode($key);
-        $params{startkey} = $params{endkey} = $key;
+    foreach ( qw| key startkey endkey |){
+        if ( exists $params{$_}  ){
+            if ( ref $params{$_} eq 'SCALAR' ) {
+                $params{$_} = ${ $params{$_} };
+            }
+            else {
+                $params{$_} = $json->encode($params{$_}) ;
+            }
+        }
     }
 
     my $self = bless {
