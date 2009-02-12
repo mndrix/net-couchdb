@@ -237,6 +237,33 @@ sub clear {
     $self->couch->create_db($self->name);
 }
 
+sub documents {
+    my ( $self, @document_ids ) = @_;
+    die "documents() called without document IDs" if not @document_ids;
+    my $res = $self->request(
+        'POST',
+        '_all_docs',
+        {
+            description => 'fetch some documents',
+            content     => { keys => \@document_ids },
+            404         => 'ok',                      # should this die instead?
+            200         => 'ok',
+            params      => { include_docs => 'true' },
+        }
+    );
+    return if $res->code == 404;                      # there's no such document
+
+    my @documents;
+    for my $row ( @{ $res->content->{rows} } ) {
+        push @documents, Net::CouchDB::Document->new({
+            db   => $self,
+            data => $row->{doc},
+        });
+    }
+    return @documents if wantarray;
+    return \@documents;
+}
+
 1;
 
 __END__
@@ -348,6 +375,11 @@ C<undef>.
 If C<$id> identifiers a design document (that is, C<$id> starts with
 "_design/"), the resulting object will be a L<Net::CouchDB::DesignDocument>,
 which is a subclass of L<Net::CouchDB::Document>.
+
+=head2 documents(@ids)
+
+Return a list (or arrayref, depending on context) of L<Net::CouchDB::Document>
+objects representing the documents whose IDs are in C<@ids>.
 
 =head2 document_exists($id)
 
