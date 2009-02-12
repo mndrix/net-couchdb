@@ -46,7 +46,7 @@ eval { $document->update };
 is $@, '', 'first update succeeds';
 $refresh->{key} = 'different';
 eval { $refresh->update };
-like $@, qr/\b412\b/, 'conflicting change';
+like $@, qr/\b409\b/, 'conflicting change';
 
 # completely replace the contents of the document
 %$document = (
