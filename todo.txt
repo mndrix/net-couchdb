@@ -1,3 +1,6 @@
+* request design documents without encoding the internal '/' (this is because
+  of a change to the CouchDB API)
+
 * implement $document->attachment('name') for fetching attachments
 
 * auto-guess attachment content type for scalar content
