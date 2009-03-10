@@ -165,6 +165,13 @@ The search arguments can be any arguments accepted by CouchDB's view API.  For
 a complete list, see L<http://wiki.apache.org/couchdb/HttpViewApi>.  Arguments
 of particular interest are document below.
 
+=head3 include_docs
+
+If this argument has the value "true", both the search results and the
+corresponding documents are retrieved with a single HTTP request.  Calling
+L<Net::CouchDB::ViewResultRow/document> on rows from such a search requires no
+additional HTTP requests.
+
 =head3 key
 
 Restricts the results to only those rows where the key matches the one given.
