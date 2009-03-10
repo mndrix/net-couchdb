@@ -30,10 +30,7 @@ sub uri {
     my ($self) = @_;
     my $view_name = $self->name;
     my $design = $self->design;
-    my $design_name = $design->name;
-
-    my $base = $design->db->uri;
-    return URI->new_abs( "_view/$design_name/$view_name", $base );
+    return URI->new_abs( "_view/".$self->name, $design->uri );
 }
 
 1;
