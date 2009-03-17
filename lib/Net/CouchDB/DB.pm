@@ -138,8 +138,10 @@ sub bulk {
 
     my @inserted_docs;
     NEWREV:
-    for my $new ( @{ $res->content->{new_revs} } ) {
-        my ( $id, $rev ) = @{$new}{ 'id', 'rev' };
+    for my $new ( @{ $res->content } ) {
+        my ( $id, $rev, $error, $reason ) = @{$new}{qw( id rev error reason )};
+        die "Error ('$error') encountered during bulk(): $reason\n"
+            if $error;
         if ( my $request = $input_doc_ids{$id} ) {  # update or delete
             my ($operation, $doc) = @$request;
             $doc->_you_are_now({
